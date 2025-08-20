@@ -10,11 +10,11 @@ $manifest['description']   = __(
 	.' that comes with a lot of already created shortcodes.',
 	'fw'
 );
-$manifest['github_repo'] = 'https://github.com/ThemeFuse/Unyson-PageBuilder-Extension';
+$manifest['github_repo'] = 'https://github.com/UnysonPlus/UnysonPlus-PageBuilder-Extension';
 $manifest['uri'] = 'http://manual.unyson.io/en/latest/extension/builder/index.html;';
-$manifest['author'] = 'ThemeFuse';
-$manifest['author_uri'] = 'http://themefuse.com/';
-$manifest['version']       = '1.6.19';
+$manifest['author'] = 'Lastimosa';
+$manifest['author_uri'] = 'http://lastimosa.com.ph/';
+$manifest['version']       = '1.6.20';
 $manifest['display']       = true;
 $manifest['standalone']    = true;
 $manifest['requirements']  = array(
@@ -22,7 +22,7 @@ $manifest['requirements']  = array(
 		/**
 		 * In that version was solved the bug with children extension requirements when activate an extension
 		 */
-		'min_version' => '2.1.18',
+		'min_version' => '2.1.19',
 	),
 	'extensions' => array(
 		'builder' => array(),
@@ -33,4 +33,4 @@ $manifest['requirements']  = array(
 	),
 );
 
-$manifest['github_update'] = 'ThemeFuse/Unyson-PageBuilder-Extension';
+$manifest['github_update'] = 'UnysonPlus/UnysonPlus-PageBuilder-Extension';
