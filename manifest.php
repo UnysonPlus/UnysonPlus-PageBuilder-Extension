@@ -1,36 +1,44 @@
-<?php if ( ! defined( 'FW' ) ) {
-	die( 'Forbidden' );
-}
+<?php if (!defined('FW')) die('Forbidden');
 
 $manifest = array();
 
-$manifest['name']          = __( 'Page Builder', 'fw' );
-$manifest['description']   = __(
-	'Lets you easily build countless pages with the help of the drag and drop visual page builder'
-	.' that comes with a lot of already created shortcodes.',
-	'fw'
-);
-$manifest['github_repo'] = 'https://github.com/UnysonPlus/UnysonPlus-PageBuilder-Extension';
-$manifest['uri'] = 'http://manual.unyson.io/en/latest/extension/builder/index.html;';
-$manifest['author'] = 'Lastimosa';
-$manifest['author_uri'] = 'http://lastimosa.com.ph/';
-$manifest['version']       = '1.6.20';
-$manifest['display']       = true;
-$manifest['standalone']    = true;
-$manifest['requirements']  = array(
-	'framework' => array(
-		/**
-		 * In that version was solved the bug with children extension requirements when activate an extension
-		 */
-		'min_version' => '2.1.19',
-	),
-	'extensions' => array(
-		'builder' => array(),
-		'forms' => array(),
-		'shortcodes' => array(
-			'min_version' => '1.3.21', // was added the get_builder_data() method
-		),
-	),
+$manifest['name']        = __( 'Page Builder', 'fw' );
+$manifest['slug']        = 'unysonplus-pagebuilder';
+$manifest['description'] = __(
+    'Lets you easily build countless pages with the drag and drop visual page builder, '
+  . 'which comes with many ready-made shortcodes.',
+    'fw'
 );
 
+$manifest['version']     = '1.6.20';
+$manifest['display']     = true;
+$manifest['standalone']  = true;
+
+// Repository Info
 $manifest['github_update'] = 'UnysonPlus/UnysonPlus-PageBuilder-Extension';
+$manifest['github_repo']   = 'https://github.com/UnysonPlus/UnysonPlus-PageBuilder-Extension';
+$manifest['github_branch'] = 'master';
+
+// Author Info
+$manifest['author']     = 'UnysonPlus';
+$manifest['author_uri'] = 'https://www.lastimosa.com.ph/unysonplus';
+
+// Meta
+$manifest['license']      = 'GPL-2.0-or-later';
+$manifest['text_domain']  = 'fw';
+$manifest['requires_php'] = '7.4';
+$manifest['requires_wp']  = '5.8';
+
+// Requirements
+$manifest['requirements'] = array(
+    'framework' => array(
+        'min_version' => '2.1.19', // Fix for children extension requirements
+    ),
+    'extensions' => array(
+        'builder' => array(),
+        'forms'   => array(),
+        'shortcodes' => array(
+            'min_version' => '1.3.21', // Added get_builder_data() method
+        ),
+    ),
+);
