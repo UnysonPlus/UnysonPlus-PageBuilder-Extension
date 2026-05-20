@@ -32,8 +32,22 @@ class _Page_Builder_Items_Corrector_Row_Container
 	 */
 	private function extract_fraction_from_column_width($column_width)
 	{
-		list($numerator, $denominator) = explode('_', str_replace('-', '_', $column_width));
-		return new _Page_Builder_Items_Corrector_Fraction($numerator, $denominator);
+		// Non-fraction column keys (e.g. 'col' — the BS5 auto-flex column —
+		// or any custom key the user/theme registered without an N_M shape)
+		// contribute zero to the row's fill accumulator. Auto-flex columns
+		// squeeze into whatever leftover space exists in the row, so they
+		// always "fit" and never wrap. Returning 0/1 makes column_fits() and
+		// the accumulator math work without parsing the key.
+		//
+		// Casting fraction parts to (int) is also defensive — the previous
+		// code passed raw strings into the Fraction class, which produced a
+		// fatal `int * string` if any malformed key slipped through.
+		$parts = explode( '_', str_replace( '-', '_', (string) $column_width ) );
+		if ( count( $parts ) < 2 || ! is_numeric( $parts[0] ) || ! is_numeric( $parts[1] ) ) {
+			return new _Page_Builder_Items_Corrector_Fraction( 0, 1 );
+		}
+
+		return new _Page_Builder_Items_Corrector_Fraction( (int) $parts[0], (int) $parts[1] );
 	}
 
 	private function column_fits($column_width)

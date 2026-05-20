@@ -153,7 +153,7 @@ abstract class Page_Builder_Item extends FW_Option_Type_Builder_Item
 		) {
 			foreach (fw_extract_only_options($shortcode_options) as $id => $option) {
 				$item['atts'][ $id ] = fw()->backend->option_type($option['type'])->storage_save(
-					$id, $option, $item['atts'][ $id ], $params
+					$id, $option, isset($item['atts'][ $id ]) ? $item['atts'][ $id ] : null, $params
 				);
 			}
 		}

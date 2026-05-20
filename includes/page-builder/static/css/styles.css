@@ -1,6 +1,8 @@
 /* Thumbs */
 .fw-option-type-builder.fw-option-type-page-builder .builder-item-type {
 	display: block;
+	border-radius: .25rem;
+    margin: .25rem;
 }
 .fw-option-type-page-builder .builder-item-type .inner {
 	width: 100%;

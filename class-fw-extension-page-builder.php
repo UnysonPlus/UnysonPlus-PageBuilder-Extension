@@ -78,7 +78,33 @@ class FW_Extension_Page_Builder extends FW_Extension {
 		/** @since 1.6.15 */
 		if ( ! is_admin() ) {
 			add_action( 'rest_api_init', array( $this, '_rest_api_init' ) );
+
+			// Late priority so the builder extension's static.php (which
+			// registers the handle) has already run in this same action.
+			add_action( 'wp_enqueue_scripts', array( $this, '_action_maybe_enqueue_bootstrap_3_legacy' ), 20 );
 		}
+	}
+
+	/**
+	 * Enqueue the .fw-prefixed Bootstrap 3 legacy stylesheet when the
+	 * matching setting is on. Opt-in escape hatch for sites migrating
+	 * from the original Unyson plugin whose markup still uses .fw-container
+	 * / .fw-row / etc. classes.
+	 *
+	 * @internal
+	 */
+	public function _action_maybe_enqueue_bootstrap_3_legacy() {
+		if ( ! fw_get_db_ext_settings_option( $this->get_name(), 'load_bootstrap_3_legacy_css' ) ) {
+			return;
+		}
+
+		// Both frontend-grid.css (BS5 widths) and bootstrap-3-legacy.css (BS3
+		// widths) target the same .fw-* selectors. Enqueueing legacy here at
+		// priority 20 — after section/row/column/forms static.php (priority 10)
+		// have enqueued frontend-grid — puts legacy last in the cascade, so its
+		// BS3 widths override the BS5 defaults wherever the two define the same
+		// rule. That's exactly what a migrating site wants.
+		wp_enqueue_style( 'fw-ext-builder-bootstrap-3-legacy' );
 	}
 
 	/**
