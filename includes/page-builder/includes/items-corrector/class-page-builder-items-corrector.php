@@ -67,7 +67,7 @@ class _Page_Builder_Items_Corrector
 	private function correct_sections()
 	{
 		foreach ($this->items as $index => &$item) {
-			if ($item['type'] === 'section') {
+			if (FW_Section_Like_Registry::is_section_like($item['type'])) {
 				$item['atts']['auto_generated'] = false;
 				if ($index === 0) {
 					$item['atts']['first_in_builder'] = true;
@@ -169,7 +169,7 @@ class _Page_Builder_Items_Corrector
 
 		$auto_generated_section = array();
 		for ($i = 0, $count = count($items); $i < $count; $i++) {
-			if ($items[$i]['type'] === 'section') {
+			if (FW_Section_Like_Registry::is_section_like($items[$i]['type'])) {
 				if (!empty($auto_generated_section)) {
 					$fixed_items[] = $this->wrap_into_section($auto_generated_section, array(
 						'atts' => array(

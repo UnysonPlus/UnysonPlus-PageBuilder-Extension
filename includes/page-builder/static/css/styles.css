@@ -2,7 +2,13 @@
 .fw-option-type-builder.fw-option-type-page-builder .builder-item-type {
 	display: block;
 	border-radius: .25rem;
-    margin: .25rem;
+	/* Right + bottom only — `margin-top` / `margin-left` would shift the cloned
+	 * drag helper's own box position, which jQuery UI re-reads as cursor offset
+	 * each time the helper crosses into a connected sortable, causing cumulative
+	 * drift. Right + bottom margins only push *siblings* away; the element's
+	 * own top/left is unchanged, so the helper stays glued to the cursor.
+	 */
+	margin: 0 .25rem .25rem 0;
 }
 .fw-option-type-page-builder .builder-item-type .inner {
 	width: 100%;

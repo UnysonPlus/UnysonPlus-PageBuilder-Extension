@@ -52,10 +52,32 @@ class _Page_Builder_Items_Corrector_Row_Container
 
 	private function column_fits($column_width)
 	{
+		// 1. Developer-only static config flag (kept for back-compat with any
+		//    custom theme that already sets it). `true` disables auto-split.
 		if ( fw_ext( 'page-builder' )->get_config( 'disable_columns_auto_wrap' ) ) {
 			return true;
 		}
 
+		// 2. Page Builder Settings → "Bootstrap 3 Legacy Mode" checkbox.
+		//    UNCHECKED (default) = Bootstrap 5 flex-wrap behaviour, no auto-split:
+		//    all columns of a section stay in one .fw-row and flex-wrap handles
+		//    the visual wrapping, which is what makes Theme Settings → Default
+		//    Gap Y take effect between wrapped sub-rows.
+		//    CHECKED = legacy Bootstrap 3 behaviour: loads bootstrap-3-legacy.css
+		//    AND auto-splits columns into separate .fw-rows when total width
+		//    exceeds one row. The two behaviours go together — anyone running
+		//    pre-migrated Unyson content needs both to keep their layouts intact.
+		if ( function_exists( 'fw_get_db_ext_settings_option' ) ) {
+			$legacy = fw_get_db_ext_settings_option( 'page-builder', 'load_bootstrap_3_legacy_css', false );
+			// FW checkbox storage has been seen returning bool / '1' / '0' / int
+			// across versions — normalise to a strict "off" check covering each.
+			if ( $legacy === false || $legacy === '' || $legacy === '0' || $legacy === 0 ) {
+				return true;
+			}
+		}
+
+		// 3. Original fraction-based split logic — only reaches here when both
+		//    opt-outs above pass, i.e. legacy mode is explicitly enabled.
 		$column_as_fraction = $this->extract_fraction_from_column_width( $column_width );
 		$column_as_fraction->add( $this->accumulator );
 

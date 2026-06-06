@@ -44,6 +44,35 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			$version
 		);
 
+		// Modernized flexbox canvas — lay out column rows with flexbox so the
+		// editor matches the flexbox frontend (equal-height columns, clean wrap)
+		// instead of the legacy inline-block. Loaded ONLY when Bootstrap-3 Legacy
+		// Mode is OFF, gating it by the same setting the frontend grid uses (no
+		// separate toggle). Editor-only — saved output is unchanged.
+		// filter_var() normalizes whatever the checkbox stored (bool / '1' / '0' /
+		// '' / 'false' / int) — load the flex canvas unless legacy is truthy-ON.
+		$bs3_legacy = function_exists( 'fw_get_db_ext_settings_option' )
+			? fw_get_db_ext_settings_option( 'page-builder', 'load_bootstrap_3_legacy_css', false )
+			: false;
+		if ( ! filter_var( $bs3_legacy, FILTER_VALIDATE_BOOLEAN ) ) {
+			wp_enqueue_style(
+				'fw-option-type-' . $this->get_type() . '-flex-canvas',
+				$static_uri . '/css/flex-canvas.css',
+				array( 'fw-option-type-' . $this->get_type() ),
+				$version
+			);
+			// Tags column rows/items with helper classes (.fw-pb-flex-row /
+			// .fw-pb-flex-col) so the CSS can avoid :has() and exact-nesting
+			// assumptions; re-tags on canvas DOM changes via MutationObserver.
+			wp_enqueue_script(
+				'fw-option-type-' . $this->get_type() . '-flex-canvas',
+				$static_uri . '/js/flex-canvas.js',
+				array(),
+				$version,
+				true
+			);
+		}
+
 		/*
 		 * there should not be (and it does not make sens to be)
 		 * more than one page builder per page that is integrated
@@ -133,6 +162,84 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 				)
 			);
 		}
+
+		// Section-like registry / view factory — loaded BEFORE section variants
+		// so they can call window.createSectionLikeItem() during their own register-items handler.
+		wp_enqueue_script(
+			'fw-section-like-factory',
+			$static_uri . '/js/section-like-factory.js',
+			array( 'jquery', 'fw-events', 'underscore', 'backbone' ),
+			$version,
+			true
+		);
+
+		wp_localize_script(
+			'fw-section-like-factory',
+			'_fw_section_like_types',
+			array(
+				'types' => FW_Section_Like_Registry::get_types(),
+			)
+		);
+
+		wp_enqueue_style(
+			'fw-option-type-' . $this->get_type() . '-section-sorter',
+			$static_uri . '/css/section-sorter.css',
+			array('fw-option-type-' . $this->get_type()),
+			$version
+		);
+
+		wp_enqueue_script(
+			'fw-option-type-' . $this->get_type() . '-section-sorter',
+			$static_uri . '/js/section-sorter.js',
+			array('jquery', 'jquery-ui-sortable', 'fw-events', 'underscore', 'qtip', 'fw-section-like-factory'),
+			$version,
+			true
+		);
+
+		wp_localize_script(
+			'fw-option-type-' . $this->get_type() . '-section-sorter',
+			'_fw_page_builder_section_sorter',
+			array(
+				'l10n' => array(
+					'btn'          => __('Sort Sections', 'fw'),
+					'empty'        => __('No sections yet', 'fw'),
+					'sectionLabel' => __('Section', 'fw'),
+					'collapse'     => __('Collapse', 'fw'),
+					'expand'       => __('Expand', 'fw'),
+					'scrollTo'     => __('Scroll to this section', 'fw'),
+				),
+			)
+		);
+
+		// Device preview toggle (Desktop / Tablet / Phone) — re-previews the canvas
+		// at each breakpoint so responsive column widths/offsets and masonry column
+		// counts are visible while editing. Editor-only.
+		wp_enqueue_style(
+			'fw-option-type-' . $this->get_type() . '-device-preview',
+			$static_uri . '/css/device-preview.css',
+			array( 'fw-option-type-' . $this->get_type() ),
+			$version
+		);
+
+		wp_enqueue_script(
+			'fw-option-type-' . $this->get_type() . '-device-preview',
+			$static_uri . '/js/device-preview.js',
+			array( 'jquery', 'fw-events', 'underscore' ),
+			$version,
+			true
+		);
+
+		wp_localize_script(
+			'fw-option-type-' . $this->get_type() . '-device-preview',
+			'_fw_page_builder_device_preview',
+			array(
+				'l10n' => array(
+					'desktop' => __( 'Desktop', 'fw' ),
+					'tablet'  => __( 'Tablet', 'fw' ),
+					'phone'   => __( 'Phone', 'fw' ),
+				),
+			)
+		);
 
 		if ( apply_filters(
 			'fw:ext:page-builder:modal-save-all',

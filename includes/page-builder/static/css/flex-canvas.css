@@ -1,0 +1,72 @@
+/* ===========================================================================
+   Page-builder canvas modernization — flexbox column rows.
+
+   The editor canvas historically lays out column items with `display:inline-block`
+   (builder.css) / `float:left` (fw.css): no equal-height columns, imperfect
+   wrapping. The live frontend uses flexbox (.fw-row { display:flex; flex-wrap:wrap }),
+   so the editor didn't match.
+
+   This stylesheet flips canvas column rows to real flexbox (equal-height columns,
+   clean wrapping). Enqueued ONLY when Bootstrap-3 Legacy Mode is OFF (see
+   class-fw-option-type-page-builder.php) — gated by the same setting the frontend
+   grid uses, so no separate toggle. Editor-only: saved output is unchanged.
+
+   The `.fw-pb-flex-row` (on a column container) and `.fw-pb-flex-col` (on each
+   column item) helper classes are applied by flex-canvas.js — that avoids relying
+   on CSS :has() (browser support) or exact DOM nesting.
+   =========================================================================== */
+
+/* A container that directly holds column items becomes a flex row. */
+.fw-option-type-builder .builder-items.fw-pb-flex-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;          /* equal-height columns, like the frontend */
+}
+
+/* Neutralize the legacy `.fw-row` clearfix pseudo-elements — inside a flex
+   container they'd become stray flex items and skew the layout. */
+.fw-option-type-builder .builder-items.fw-pb-flex-row::before,
+.fw-option-type-builder .builder-items.fw-pb-flex-row::after {
+	content: none;
+	display: none;
+}
+
+/* Column items: flex children sized by their fw-col-sm-N width (no grow/shrink),
+   overriding builder.css's inline-block and fw.css's float. */
+.fw-option-type-builder .builder-items.fw-pb-flex-row > .builder-item {
+	float: none;
+	display: block;
+	flex: 0 0 auto;
+}
+
+/* Stretch the column's inner box to the equalized row height so the equal-height
+   effect is actually visible (not just empty space under the shorter column).
+   Make it a flex column so the content/drop container can fill the rest. */
+.fw-option-type-builder .builder-items.fw-pb-flex-row > .builder-item.fw-pb-flex-col > .pb-item-type-column {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Grow the column's content/drop container to fill the stretched card so the
+   WHOLE empty column is a valid drop target. Without this, an empty column that's
+   stretched to match a taller sibling leaves a non-droppable dead zone below its
+   small (~83px) content area — you'd have to aim at the top to drop. NOTE: only
+   the parent card is made flex; this container stays block, so jQuery-UI sortable
+   cross-container drops keep working. */
+.fw-option-type-builder .builder-items.fw-pb-flex-row > .builder-item.fw-pb-flex-col > .pb-item-type-column > .builder-items {
+	flex: 1 1 auto;
+	/* This container is itself a flex row (.fw-row) and the full-width leaf items
+	   wrap onto separate flex lines. Now that it's grown to fill the column, the
+	   default align-content would spread those lines apart vertically — pack them
+	   at the top so dropped elements stay top-aligned (empty space stays below as
+	   the drop zone). */
+	align-content: flex-start;
+}
+
+/* Any non-column item that ends up in a column row stays full-width on its own
+   line (so stray leaves don't get pulled into the row). */
+.fw-option-type-builder .builder-items.fw-pb-flex-row > .builder-item:not(.fw-pb-flex-col) {
+	flex: 0 0 100%;
+	max-width: 100%;
+}

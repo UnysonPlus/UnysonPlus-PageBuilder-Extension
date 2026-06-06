@@ -18,11 +18,25 @@ $options = array(
                                 'desc'    => __( 'Select the posts you want the Page Builder extension to be activated for', 'fw' )
                         ),
                         'load_bootstrap_3_legacy_css' => array(
-                                'label' => __( 'Bootstrap 3 Legacy Stylesheet', 'fw' ),
+                                'label' => __( 'Bootstrap 3 Legacy Mode', 'fw' ),
                                 'type'  => 'checkbox',
                                 'value' => false,
-                                'text'  => __( 'Load bootstrap-3-legacy.css', 'fw' ),
-                                'desc'  => __( 'Enable this if you are migrating an existing site from the original Unyson plugin and your content/templates still use the .fw-container / .fw-row / etc. classes. Loads builder/static/css/bootstrap-3-legacy.css on every frontend page. Leave off for new UnysonPlus sites.', 'fw' ),
+                                'text'  => __( 'Enable Bootstrap 3 compatibility (legacy stylesheet + column auto-split)', 'fw' ),
+                                'desc'  => __( 'Migration mode for sites built on the original Unyson plugin. Two Bootstrap-3-era behaviours kick in together: <br><br>(1) Loads <code>builder/static/css/bootstrap-3-legacy.css</code> on every frontend page so existing <code>.fw-container</code> / <code>.fw-row</code> markup keeps the old float-based grid widths. <br><br>(2) The page-builder auto-splits groups of columns into separate <code>[row]</code> shortcodes whenever their combined width exceeds one row — e.g. eight 1/4 columns become two <code>.fw-row</code> wrappers of 4 each. <br><br><strong>Leave off for new UnysonPlus sites.</strong> Bootstrap 5\'s flex grid wraps naturally inside one <code>.fw-row</code>, and Theme Settings → Default Gap Y only takes effect between wrapped sub-rows of the same row.', 'fw' ),
+                        ),
+                        'disable_bootstrap' => array(
+                                'label' => __( 'Bootstrap 5 Stylesheet', 'fw' ),
+                                'type'  => 'checkbox',
+                                'value' => false,
+                                'text'  => __( 'Dequeue Bootstrap 5 CSS (do not load it on the front end)', 'fw' ),
+                                'desc'  => __( 'By default the plugin-bundled Bootstrap 5 (<code>framework/static/css/bootstrap.min.css</code>) loads on every front-end page so shortcodes like Button / Notification / Table / Tabs render with their default styling, and most themes rely on it for nav menus, buttons and forms. <strong>Check this only if your theme ships a complete Bootstrap-compatible CSS layer of its own (Tailwind, custom utilities, etc.).</strong> Dequeuing without a replacement will break shortcode and theme styling.', 'fw' ),
+                        ),
+                        'disable_styling_presets' => array(
+                                'label' => __( 'Styling Presets', 'fw' ),
+                                'type'  => 'checkbox',
+                                'value' => false,
+                                'text'  => __( 'Disable Styling Presets (bare, structure-only page builder)', 'fw' ),
+                                'desc'  => __( 'Designed for developers who want a pure page builder experience and prefer styling elements manually using custom CSS classes. By default shortcodes get a <strong>Styling</strong> tab and the Button / Border / Table <strong>preset pickers</strong>, the <strong>Component Presets</strong> editor appears under the Unyson+ menu, and the generated <code>presets.css</code> (Color / Typography / Spacing / Button / Border / Table utility classes) is enqueued. <br><br><strong>Check this for a bare, structure-only page builder</strong> — for developers who style everything with their own CSS via each element\'s <strong>CSS ID / Class</strong> (Advanced tab). The Styling tab, preset pickers and Component Presets page disappear, and <code>presets.css</code> stops loading. <br><br>Note: this unstyles any content that relied on preset classes, and the <strong>Unyson+ theme depends on these tokens</strong> — so only enable it on a non-Unyson theme with your own CSS. The Animation tab is unaffected (it only loads when used).', 'fw' ),
                         ),
                         apply_filters('fw_ext_page_builder_settings_options', array())
                 )

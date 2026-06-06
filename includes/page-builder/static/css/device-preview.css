@@ -1,0 +1,85 @@
+/* ===========================================================================
+   Device preview toggle (Desktop / Tablet / Phone).
+
+   - Toolbar button group (sits in .fw-builder-header-tools next to Sort Sections).
+   - Canvas device frame: constrains the canvas width so percentage-based column
+     widths render at realistic device sizes. This is purely visual — the actual
+     responsive layout is driven by the `fw-device-*` class on the builder root
+     (column item JS + masonry CSS read it).
+
+   Editor-only. Default (no class / Desktop) leaves the canvas exactly as before.
+   =========================================================================== */
+
+/* --- Toolbar buttons --- */
+.fw-device-preview {
+	display: inline-flex;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	overflow: hidden;
+	vertical-align: middle;
+	order: 10; /* keep the device toggle right-most in the flex header tools */
+}
+
+.fw-device-preview .fw-device-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 30px;
+	background: #fff;
+	color: #50575e;
+	text-decoration: none;
+	border-left: 1px solid #e0e0e0;
+	box-shadow: none;
+	transition: background .15s ease, color .15s ease;
+}
+
+.fw-device-preview .fw-device-btn:first-child {
+	border-left: 0;
+}
+
+.fw-device-preview .fw-device-btn:hover,
+.fw-device-preview .fw-device-btn:focus {
+	background: #f0f0f1;
+	color: #2271b1;
+	outline: none;
+}
+
+.fw-device-preview .fw-device-btn.active {
+	background: #2271b1;
+	color: #fff;
+}
+
+.fw-device-preview .fw-device-btn .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	line-height: 1;
+}
+
+/* --- Canvas device frame --- */
+.fw-option-type-builder .builder-root-items > .builder-items {
+	transition: max-width .2s ease;
+}
+
+.fw-option-type-builder.fw-device-md .builder-root-items > .builder-items {
+	max-width: 768px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.fw-option-type-builder.fw-device-sm .builder-root-items > .builder-items {
+	max-width: 375px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* --- Smooth the reflow when switching device --- */
+/* Column items animate their width/offset change instead of snapping. (The frame
+   max-width above already eases.) Suspended during drag so sortable stays snappy. */
+.fw-option-type-builder .builder-items.fw-pb-flex-row > .builder-item {
+	transition: flex-basis .25s ease, width .25s ease, max-width .25s ease, margin-left .25s ease;
+}
+body.fw-builder-dragging .fw-option-type-builder .builder-items.fw-pb-flex-row > .builder-item {
+	transition: none;
+}

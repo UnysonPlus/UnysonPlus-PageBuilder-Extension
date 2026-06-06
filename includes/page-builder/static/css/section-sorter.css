@@ -1,0 +1,136 @@
+.fw-option-type-builder .section-sorter-container {
+	margin-right: 12px;
+}
+
+.fw-option-type-builder .section-sorter-container .section-sorter-btn {
+	text-decoration: none;
+}
+
+.fw-option-type-builder .section-sorter-container .section-sorter-btn:hover,
+.fw-option-type-builder .section-sorter-container .section-sorter-btn:focus {
+	text-decoration: none;
+}
+
+.fw-option-type-builder .section-sorter-container .section-sorter-btn:before {
+	content: "\f156";
+	font-family: dashicons;
+	padding-right: 3px;
+	vertical-align: text-bottom;
+	line-height: normal;
+}
+
+.fw-section-sorter-tooltip-content {
+	padding: 4px 0;
+}
+
+.section-sorter-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: 50vh;
+	overflow-y: auto;
+	min-width: 240px;
+}
+
+.section-sorter-empty {
+	padding: 12px;
+	text-align: center;
+	color: #888;
+	font-style: italic;
+}
+
+.section-sorter-item {
+	display: flex;
+	align-items: center;
+	padding: 6px 8px;
+	border-bottom: 1px solid #eee;
+	background: #fff;
+	gap: 6px;
+	user-select: none;
+}
+
+.section-sorter-item:last-child {
+	border-bottom: none;
+}
+
+.section-sorter-item:hover {
+	background: #f3f6fa;
+}
+
+.section-sorter-handle {
+	cursor: grab;
+	color: #999;
+	flex: 0 0 auto;
+	font-size: 16px;
+	width: 18px;
+	height: 18px;
+	line-height: 18px;
+	text-align: center;
+}
+
+.section-sorter-handle:hover {
+	color: #2271b1;
+}
+
+.section-sorter-handle:active {
+	cursor: grabbing;
+}
+
+.section-sorter-index {
+	flex: 0 0 auto;
+	color: #888;
+	font-size: 11px;
+	min-width: 22px;
+	text-align: right;
+}
+
+.section-sorter-label {
+	flex: 1 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #222;
+	font-size: 13px;
+	cursor: pointer;
+	padding: 2px 0;
+	text-align: left;
+}
+
+.section-sorter-label:hover {
+	color: #2271b1;
+}
+
+.section-sorter-collapse {
+	flex: 0 0 auto;
+	color: #999;
+	cursor: pointer;
+	font-size: 16px;
+	width: 18px;
+	height: 18px;
+	line-height: 18px;
+	text-align: center;
+}
+
+.section-sorter-collapse:hover {
+	color: #2271b1;
+}
+
+.section-sorter-placeholder {
+	background: #fffbe5;
+	border: 1px dashed #d4b94f;
+	height: 32px;
+	margin: 2px 0;
+	list-style: none;
+}
+
+@keyframes section-sorter-flash {
+	0%   { box-shadow: 0 0 0 0 rgba(34, 113, 177, 0.7); }
+	50%  { box-shadow: 0 0 0 6px rgba(34, 113, 177, 0.0); }
+	100% { box-shadow: 0 0 0 0 rgba(34, 113, 177, 0.0); }
+}
+
+.section-sorter-highlight {
+	animation: section-sorter-flash 1.5s ease-out;
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
+}

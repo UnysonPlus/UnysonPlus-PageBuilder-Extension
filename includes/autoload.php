@@ -17,6 +17,12 @@ function _fw_ext_page_builder_autoload( $class ) {
                 case 'Page_Builder_Simple_Item' :
                         require_once dirname( __FILE__ ) . '/page-builder/includes/item-types/simple/class-page-builder-simple-item.php';
                         break;
+                case 'FW_Section_Like_Registry' :
+                        require_once dirname( __FILE__ ) . '/page-builder/includes/item-types/class-fw-section-like-registry.php';
+                        break;
+                case 'Page_Builder_Section_Like_Item' :
+                        require_once dirname( __FILE__ ) . '/page-builder/includes/item-types/class-page-builder-section-like-item.php';
+                        break;
                 case '_Page_Builder_Items_Corrector' :
                         require_once dirname( __FILE__ ) . '/page-builder/includes/items-corrector/class-page-builder-items-corrector.php';
                         break;
