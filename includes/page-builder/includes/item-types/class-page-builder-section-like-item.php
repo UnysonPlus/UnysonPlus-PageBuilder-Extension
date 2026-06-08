@@ -99,27 +99,39 @@ abstract class Page_Builder_Section_Like_Item extends Page_Builder_Item {
 
 		$handle = $this->get_builder_type() . '_item_type_' . $this->get_type();
 
-		$css_path = $shortcode_instance->locate_URI(
-			'/includes/page-builder-' . $this->get_type() . '-item/static/css/styles.css'
-		);
+		// Version these editor assets by the FILE'S MODIFICATION TIME, not a number
+		// inside a PHP file. The manifest/theme version is opcached by hosts like
+		// WP Engine, so bumping it does NOT change the enqueued `?ver` until the
+		// opcache is flushed — meaning the browser/CDN keep serving STALE editor
+		// CSS/JS after an update (the bug behind a very long "why won't my fix show
+		// up" loop). filemtime() is read from disk each request, so any edit to the
+		// file busts the `?ver` on its own. Falls back to the manifest version if
+		// the file can't be stat'd (e.g. a child-theme rewrite path).
+		$manifest_version = fw_ext( 'shortcodes' )->manifest->get_version();
+		$asset_ver = function ( $rel ) use ( $shortcode_instance, $manifest_version ) {
+			$fs = $shortcode_instance->get_declared_path( $rel );
+			return ( $fs && file_exists( $fs ) ) ? (string) filemtime( $fs ) : $manifest_version;
+		};
+
+		$css_rel  = '/includes/page-builder-' . $this->get_type() . '-item/static/css/styles.css';
+		$css_path = $shortcode_instance->locate_URI( $css_rel );
 		if ( $css_path ) {
 			wp_enqueue_style(
 				$handle,
 				$css_path,
 				array(),
-				fw()->theme->manifest->get_version()
+				$asset_ver( $css_rel )
 			);
 		}
 
-		$js_path = $shortcode_instance->locate_URI(
-			'/includes/page-builder-' . $this->get_type() . '-item/static/js/scripts.js'
-		);
+		$js_rel  = '/includes/page-builder-' . $this->get_type() . '-item/static/js/scripts.js';
+		$js_path = $shortcode_instance->locate_URI( $js_rel );
 		if ( $js_path ) {
 			wp_enqueue_script(
 				$handle,
 				$js_path,
 				array( 'fw-events', 'underscore', 'fw-section-like-factory' ),
-				fw()->theme->manifest->get_version(),
+				$asset_ver( $js_rel ),
 				true
 			);
 

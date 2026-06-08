@@ -50,6 +50,18 @@
 				continue;
 			}
 
+			// Skip the masonry section — it packs its own columns into a CSS grid
+			// (its editor styles.css/scripts.js). Flex tagging here would fight that
+			// grid (equal-height stretch + a growing drop zone). Strip stale classes.
+			if (
+				container.parentNode && container.parentNode.classList &&
+				container.parentNode.classList.contains( 'pb-section-like-masonry_section' )
+			) {
+				item.classList.remove( 'fw-pb-flex-col' );
+				container.classList.remove( 'fw-pb-flex-row' );
+				continue;
+			}
+
 			item.classList.add( 'fw-pb-flex-col' );
 			container.classList.add( 'fw-pb-flex-row' );
 		}
