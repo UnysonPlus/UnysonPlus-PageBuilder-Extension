@@ -75,6 +75,13 @@ a hand-authored tree may place columns directly under a section (as the real exp
 `custom_css` (""), `responsive_hide` ([]), `custom_attrs` ([]), and an `animation` block. Containers
 carry `_items`; leaf shortcodes are `{"type":"simple","shortcode":"<atom>","atts":{…},"_items":[]}`.
 
+> **Populated shapes of the common keys** (verified vs `button-test-section-6f2a34c9.json`):
+> `custom_attrs` → `[{"name":"aria-label","value":"test"}]` (list of custom HTML attributes);
+> `responsive_hide` → `{"hide-xs":true}` (breakpoint→`true` map: `hide-xs`/`hide-sm`/`hide-md`/…);
+> and the **`spacing` field's `advanced`** is `[]` when unused but a **breakpoint map when set** —
+> `{"lg":{"margin":{"top":"mt-lg-7","right":"me-lg-8",…},"padding":{…}},"md":{…}}` (responsive
+> margin/padding utility classes). All three are general — they apply to every shortcode.
+
 - **`custom_css`** — per-item raw CSS (the shared `group_css` field, alongside `css_id`/`css_class`,
   plus `inner_class` on columns). Use the literal token `selector` for the item's auto-generated
   wrapper selector, e.g. `"custom_css":"selector {\r\npadding-top: 50px;\r\n}"`. Empty string when unused.
@@ -103,16 +110,36 @@ Shared sub-objects (paste verbatim, then fill non-empty values):
 "<any>_color": {"predefined":"","custom":""}
 "spacing": {"margin":{"all":"","top":"","right":"","bottom":"","left":""},"padding":{"all":"","top":"","right":"","bottom":"","left":""},"advanced":[]}
 "background_image": {"type":"custom","custom":"","predefined":"","data":{"icon":"","css":[]}}
+"background": {"color":{"value":{"predefined":"","custom":""}},"gradient":{"data":{"type":"linear","angle":90,"stops":[]}},"image":{"src":[],"position":"center center","size":{"selected":"cover","custom":""},"repeat":"no-repeat","attachment":"scroll"},"video":{"enabled":"no","external_url":"","source_mp4":[],"source_webm":[],"poster":[],"fallback":[],"loop":"yes","autoplay":"yes","mute":"yes","playsinline":"yes"},"advanced":[]}
+"min_height": {"preset":"auto","custom":{"custom_height":{"value":"","unit":"px"}}}
 ```
 
 Container skeletons:
 ```json
 // section (top-level)
-{"type":"section","atts":{"variant":"","is_fullwidth":false,"background_color":"","background_image":{"type":"custom","custom":"","predefined":"","data":{"icon":"","css":[]}},"video":"","bleed_illustration":"","bleed_layout":{"bleed_enabled":"no","yes":{"bleed_bg_color":"","bleed_image":"","bleed_image_position":"center","bleed_image_side":"right","bleed_image_ratio":"5-7","bleed_vertical_align":"align-items-center","bleed_content_padding":"3rem","bleed_mobile_stacking":"content-first"}},"bg_color":{"predefined":"","custom":""},"padding_top":"","padding_bottom":"","gap":"","gap_x":"","gap_y":"","animation":{…},"unique_id":"…","css_id":"","css_class":"","custom_css":"","responsive_hide":[],"custom_attrs":[]},"_items":[…]}
+{"type":"section","atts":{"variant":"","is_fullwidth":false,"background_color":"","background_image":{"type":"custom","custom":"","predefined":"","data":{"icon":"","css":[]}},"video":"","bleed_illustration":"","bleed_layout":{"bleed_enabled":"no","yes":{"bleed_bg_color":"","bleed_image":"","bleed_image_position":"center","bleed_image_side":"right","bleed_image_ratio":"5-7","bleed_vertical_align":"align-items-center","bleed_content_padding":"3rem","bleed_mobile_stacking":"content-first"}},"bg_color":{"predefined":"","custom":""},"padding_top":"","padding_bottom":"","gap":"","gap_x":"","gap_y":"","min_height":{"preset":"auto","custom":{"custom_height":{"value":"","unit":"px"}}},"content_valign":"top","background":{…background…},"animation":{…},"unique_id":"…","css_id":"","css_class":"","custom_css":"","responsive_hide":[],"custom_attrs":[]},"_items":[…]}
 
-// column (width is top-level)
-{"type":"column","width":"1_2","atts":{"full_height":"no","bg_color":{…},"spacing":{…},"animation":{…},"unique_id":"…","css_id":"","css_class":"","custom_css":"","inner_class":"","responsive_hide":[],"custom_attrs":[]},"_items":[…]}
+// column (width is top-level; the responsive width/offset/align keys mirror it per-device)
+{"type":"column","width":"1_2","atts":{"full_height":"no","bg_color":{…},"spacing":{…},"mobile_order":"","w_phone":"default","w_tablet":"default","w_desktop":"default","offset_phone":"none","offset_tablet":"none","offset_desktop":"none","align_self":"default","content_v":"default","content_h":"default","position":"","z_index":"","border_preset":"","animation":{…},"unique_id":"…","css_id":"","css_class":"","custom_css":"","inner_class":"","responsive_hide":[],"custom_attrs":[]},"_items":[…]}
 ```
+
+> **`background` vs `bg_color`/`background_image`:** modern sections carry a full background-pro
+> object under **`background`** (color+gradient+image+video layers — paste the shared block above);
+> the legacy `bg_color` (compact `bg-{slug}` / hex) and `background_image` keys remain for back-compat.
+> **`min_height`** is the multi-picker `{preset, custom:{custom_height:{value,unit}}}` (`preset:"auto"`
+> by default). **Section/column atts are a SUPERSET** — older exports omit the keys added above and
+> the importer fills defaults, so a subset still imports; mirror a recent real export for fidelity.
+
+> **Editor-load value-shape resilience (data-loss guard).** On editor load, a simple/leaf item runs
+> `Page_Builder_Simple_Item::get_value_from_attributes()`, which re-derives every option's value via
+> `fw_get_options_values_from_input()`. If an option's stored value SHAPE changed between plugin
+> versions, that re-derivation can throw — and historically one bad option would abort the whole
+> conversion, load the item with **EMPTY atts**, and (if the page was then saved) silently wipe the
+> user's content. That call is now wrapped in `try { … } catch (\Throwable $e) {}` that **falls back to
+> the raw saved atts**, so a shape change can at worst mis-render a single field, never wipe an item.
+> This is a safety net, **not** a substitute for proper migration: changing an existing option's type
+> is still a breaking change — keep the consuming `view.php` backward-compatible with the old value
+> (and add a migrator) so the field also renders correctly, not just survives.
 
 Per-leaf `atts` keys are documented in each shortcode's own `AGENTS.md` "Options schema" table.
 **Worked, fully-verified examples** (in the project):
@@ -164,17 +191,71 @@ Run this every time the user drops a new `.json` template or WXR `.xml` ("traini
 
 | Shortcode (atom) | Verified | Source export | Date |
 |---|---|---|---|
-| `section` | ✓ | faqs-section-c48b8528.json / WordPress.2026-06-01.xml; re-verified vs sample-full-page-template-full-7e26f8f2.json | 2026-06-03 |
-| `column` | ✓ | same | 2026-06-03 |
-| `special_heading` | ✓ | same (title_class/subtitle_class confirmed) | 2026-06-03 |
+| `section` | ✓ | faqs-section-c48b8528.json / WordPress.2026-06-01.xml; re-verified vs sample-full-page-template-full-7e26f8f2.json; **superset keys** vs payforit-homepage-full-a86dca2d.json | 2026-06-10 |
+| `column` | ✓ | same; **responsive width/offset/align keys** vs payforit-homepage-full-a86dca2d.json | 2026-06-10 |
+| `special_heading` | ✓ | same (title_class/subtitle_class confirmed; `title` accepts inline HTML — `<em>…</em>`) | 2026-06-10 |
 | `text_block` | ✓ | same (font_size_preset confirmed) | 2026-06-03 |
 | `accordion` | ✓ | faqs-section-c48b8528.json | 2026-06-02 |
-| `icon_box` | ✓ | payment-method-section-6e4d05fe.json | 2026-06-03 |
-| `button` | ☐ pending | — | — |
-| `code_block` | ☐ pending | — | — |
+| `icon_box` | ✓ | payment-method-section-6e4d05fe.json; re-verified vs payforit-homepage-full-a86dca2d.json | 2026-06-10 |
+| `divider` | ✓ | payforit-homepage-full-a86dca2d.json | 2026-06-10 |
+| `code_block` | ✓ | payforit-homepage-full-a86dca2d.json (used for escape-hatch bands; atts = `code`+styling) | 2026-06-10 |
+| `button` | ✓ | button-test-section-6f2a34c9.json (5 buttons) | 2026-06-10 |
+| `media_image` | ✓ | image-test-section-ca2a301e.json (2 images) | 2026-06-10 |
+| `image_content` | ✓ | image-content-section-f38c05cd.json (2.10.31 — column-split, spacing-mode padding, content card) | 2026-06-11 |
 | `table` | ☐ pending | — | — |
 
+> **Domain shortcodes (not plugin atoms).** The payforit export also used `casino_finder`
+> (`{heading, subheading}`) and `reviews_table` (`{title, icon, category[], post_count}` — a CPT
+> query). These live in the site's child theme / a custom plugin, not this extension, so they get
+> no plugin `AGENTS.md`. They're the canonical example of the conversion pattern "data/interactive
+> band → thin domain shortcode" (see the conversion contract §0.5).
+
 When new exports arrive, extend this table and the matching `AGENTS.md` files.
+
+**2026-06-11 — image-content export (`image-content-section-f38c05cd.json`, 2.10.31):** verified
+`image_content` against a real export exercising every new option (post the Tier A/B/C + column-split
+work). **No drift.** Pinned in `image-content/AGENTS.md`: **`column_ratio` is a plain integer**
+(seen `3`) — the new `column-split` option type stores the image's column span (1–11 of 12), the same
+int the old slider stored, so swapping the control needed **no value migration**; **`content_padding`
+is the full `spacing` composite** (padding mode) and its responsive `advanced.lg.padding` carried
+per-side classes (`pt-lg-8`/`pe-lg-5`/`pb-lg-4`/`ps-lg-4`); **`content_bg`** = `bg-{slug}` compact,
+**`content_color`** = `text-{slug}` compact; alignment fields (`vertical_align`=`align-items-*`,
+`content_align`/`stack_image_align`=`left|center|right`), `gap` = scale slug `"4"`, unit-inputs
+`{value,unit}`. §3 generals (selector-token `custom_css`, `responsive_hide` map) re-confirmed. This
+also validates end-to-end that the editor-load **data-loss guard** + the column-split swap round-trip
+cleanly. No version bump (docs-only).
+
+**2026-06-10 — image export (`image-test-section-ca2a301e.json`, 2.10.26):** trained `media_image`
+(atom `media_image`, folder `media-image`). 2 images. Its `AGENTS.md` was already accurate (no
+drift) — added a verified snippet pinning: `image` = `{attachment_id,url}` (the Media-Library
+reference — the conversion media phase ends here: Site-Converter-fetch → reference by new id/url),
+`width`/`height` = `{value,unit}`, `bg_color` = compact `{predefined:"bg-{slug}"|"",custom:hex|""}`.
+Re-confirmed the §3 generals (`custom_css` `selector` token, `spacing.advanced` breakpoint map,
+`responsive_hide` map). No version bump (docs-only).
+
+**2026-06-10 — button export (`button-test-section-6f2a34c9.json`, 2.10.26):** trained `button`
+(was pending). 5 buttons exercising every att. Updated `button/AGENTS.md` with a verified snippet +
+fixed its generator example, which wrongly showed `icon` as a string — `icon` is an **icon-v2
+object** (`{type:"none"}` / `{type:"icon-font",icon-class,icon-class-without-root,pack-name,pack-css-uri}`
+/ `{type:"custom-upload",attachment-id,url}`). Also pinned: `label` accepts inline HTML/SVG; `style`
+= `btn-{slug}`/`-outline`/`btn-gradient`, `size` = `btn-{xs..xl}`; `width` = `{mode,custom:{custom_width:{value,unit}}}`;
+`state` = `active|disabled`; `hover_animation` = `.btnfx-*` / `btnfx-c-{slug}`. **Two general
+findings** (now in §3, apply to all shortcodes): `spacing.advanced` is a `{<bp>:{margin,padding}}`
+responsive-class map when set (not just `[]`), and `custom_attrs` populates as `[{name,value}]`.
+No version bump (docs-only).
+
+**2026-06-10 — full-page export (`payforit-homepage-full-a86dca2d.json`, 2.10.23):** a real
+production homepage (the PayForItUK conversion of an AI-generated HTML site; first training data at
+the 2.10.x line). Refreshed §3: **section** atts gained `min_height` (multi-picker
+`{preset,custom:{custom_height:{value,unit}}}`), `content_valign`, and a full background-pro
+**`background`** object (alongside the legacy `bg_color`/`background_image`); **column** atts gained
+the per-device `w_phone`/`w_tablet`/`w_desktop`, `offset_*`, `align_self`, `content_v`/`content_h`,
+`position`, `z_index`, `border_preset`, `mobile_order`. Both are supersets — older exports omit them
+and the importer fills defaults. Other findings (no atts change): **`special_heading.title` carries
+inline HTML**; **`custom_css` was used 0× across 96 items** — all styling rode on global CSS keyed by
+preserved class names (`pfu-*`, `hero-sub`, `method-tile`, …), the pattern now in the conversion
+contract §0.4. Two domain shortcodes (`casino_finder`, `reviews_table`) noted above. No outstanding
+gaps for the verified atoms.
 
 **2026-06-03 — full-page export (`sample-full-page-template-full-7e26f8f2.json`, 2.8.47):** bumped
 `format_version` 1 → 2 (informational only). Revealed three shared shapes now documented in §3 that

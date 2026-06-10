@@ -144,7 +144,23 @@ class Page_Builder_Simple_Item extends Page_Builder_Item
 					}
 				}
 
-				$attributes['atts'] = fw_get_options_values_from_input( $options, array() );
+				try {
+					$attributes['atts'] = fw_get_options_values_from_input( $options, array() );
+				} catch ( \Throwable $e ) {
+					/**
+					 * Resilience guard against silent content loss on plugin updates.
+					 *
+					 * When an option's stored VALUE SHAPE changed between plugin
+					 * versions (e.g. a field became a different option type), re-deriving
+					 * its value here can throw. Without this catch, one bad option aborts
+					 * the whole conversion and the item loads with EMPTY atts — and if the
+					 * page is then saved in that blank state, the user's real content
+					 * (image, text, every other field) is silently overwritten with
+					 * nothing. Keeping the raw saved atts means a shape change can, at
+					 * worst, mis-render a single field — never wipe the whole item.
+					 */
+					unset( $e );
+				}
 			}
 		}
 
