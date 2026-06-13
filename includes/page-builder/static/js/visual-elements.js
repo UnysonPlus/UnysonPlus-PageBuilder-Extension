@@ -20,6 +20,32 @@
 		return (itemData.l10n && itemData.l10n[key]) || fallback;
 	}
 
+	// A small auto-dismissing toast (the backend equivalent of the Live Editor's
+	// status pill) — shown on copy / copy-settings / paste.
+	var $toast = null, toastTimer = null;
+	function toast(msg) {
+		if (!$toast) { $toast = $('<div class="fw-pb-toast" role="status"></div>').appendTo('body'); }
+		$toast.text(msg).addClass('is-visible');
+		clearTimeout(toastTimer);
+		toastTimer = setTimeout(function () { $toast.removeClass('is-visible'); }, 1600);
+	}
+
+	// The item currently under the cursor — the target for keyboard shortcuts
+	// (the backend has no persistent selection, so "hovered" is the active item).
+	var hoveredEntry = null;
+
+	/** The deepest registered item whose element contains `target` (or null). */
+	function itemAt(target) {
+		var hit = null;
+		_.each(registry, function (entry) {
+			var el = entry.model.view && entry.model.view.el;
+			if (el && el.contains(target)) {
+				if (!hit || hit.el.contains(el)) { hit = { el: el, entry: entry }; }
+			}
+		});
+		return hit;
+	}
+
 	/* ---- shared helpers --------------------------------------------------- */
 
 	function genUid() {
@@ -98,6 +124,7 @@
 			window.localStorage.setItem(CLIPBOARD_KEY, JSON.stringify({
 				v: 1, item: JSON.parse(JSON.stringify(model.toJSON()))
 			}));
+			toast(l10n('copied', 'Copied'));
 		} catch (e) { window.console && console.error('[fw-pb] copy failed', e); }
 	}
 
@@ -115,6 +142,7 @@
 			window.localStorage.setItem(SETTINGS_KEY, JSON.stringify({
 				v: 1, tag: model.get('shortcode'), settings: JSON.parse(JSON.stringify(settings))
 			}));
+			toast(l10n('settingsCopied', 'Settings copied'));
 		} catch (e) { window.console && console.error('[fw-pb] copy settings failed', e); }
 	}
 
@@ -143,6 +171,7 @@
 		if (model.view && model.view.modal && _.isFunction(model.view.modal.set)) {
 			model.view.modal.set('values', _.clone(atts), { silent: true });
 		}
+		toast(l10n('settingsPasted', 'Settings pasted'));
 	}
 
 	function acceptsInto(targetKind, childKind) {
@@ -163,16 +192,17 @@
 
 		if (kind === targetKind) {
 			var coll = model.collection;
-			if (coll) { coll.add(fresh, { at: coll.indexOf(model) + 1 }); }
+			if (coll) { coll.add(fresh, { at: coll.indexOf(model) + 1 }); toast(l10n('pasted', 'Pasted')); }
 			return;
 		}
 		if (acceptsInto(targetKind, kind)) {
 			var into = model.get('_items');
-			if (into && into.add) { into.add(fresh); }
+			if (into && into.add) { into.add(fresh); toast(l10n('pasted', 'Pasted')); }
 			return;
 		}
 		if (kind === 'section' && builder && builder.rootItems) {
 			builder.rootItems.add(fresh);
+			toast(l10n('pasted', 'Pasted'));
 			return;
 		}
 		window.alert(kind === 'column'
@@ -366,18 +396,51 @@
 		var t = e.target;
 		if (!t || !t.closest || !t.closest('.fw-option-type-page-builder')) { return true; }
 
-		// Find the deepest registered item whose element contains the target.
-		var hit = null;
-		_.each(registry, function(entry) {
-			var el = entry.model.view && entry.model.view.el;
-			if (el && el.contains(t)) {
-				if (!hit || hit.el.contains(el)) { hit = { el: el, entry: entry }; }
-			}
-		});
+		var hit = itemAt(t);
 		if (!hit) { return true; }
 
 		openMenu(hit.entry.model, hit.entry.builder, e.clientX, e.clientY);
 		if (e.preventDefault) { e.preventDefault(); }
 		return false;
 	};
+
+	// Track the item under the cursor — the active target for keyboard shortcuts.
+	document.addEventListener('mouseover', function(e) {
+		var t = e.target;
+		hoveredEntry = (t && t.closest && t.closest('.fw-option-type-page-builder')) ? itemAt(t) : null;
+	}, true);
+
+	/** Trigger the builder's Undo/Redo control (if present + enabled). */
+	function builderHistory(dir) {
+		var $a = $('.fw-option-type-page-builder a.' + dir).first();
+		if ($a.length && !$a.hasClass('disabled')) { $a.trigger('click'); }
+	}
+
+	// Keyboard shortcuts. Ctrl+S saves the post; the rest act on the hovered item
+	// (the backend has no persistent selection). Skipped while typing in a field.
+	document.addEventListener('keydown', function(e) {
+		if (!(e.ctrlKey || e.metaKey)) { return; }
+		var k = (e.key || '').toLowerCase();
+		var t = e.target, tag = t && t.tagName;
+		var inField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable);
+
+		// Save — works everywhere; blocks the browser's Save-page dialog.
+		if (k === 's') { e.preventDefault(); $('#publish').trigger('click'); return; }
+		if (inField) { return; }
+
+		// Undo / Redo via the builder's own history control.
+		if (k === 'z' && !e.shiftKey) { e.preventDefault(); builderHistory('undo'); return; }
+		if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); builderHistory('redo'); return; }
+
+		var entry = hoveredEntry && hoveredEntry.entry;
+		if (!entry || !entry.model.view || !document.body.contains(entry.model.view.el)) { return; }
+
+		if (k === 'c' && !(window.getSelection && String(window.getSelection()))) {
+			e.preventDefault(); copyModel(entry.model);
+		} else if (k === 'v') {
+			e.preventDefault(); pasteRelativeTo(entry.model, entry.builder);
+		} else if (k === 'd') {
+			e.preventDefault(); trigger(entry.model, '.item-clone, .custom-section-clone, .column-item-clone');
+		}
+	}, false);
 })(jQuery, fw_option_type_page_builder_editor_integration_data);

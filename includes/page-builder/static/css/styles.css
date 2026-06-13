@@ -59,6 +59,30 @@
 	opacity: 0.6;
 }
 
+/* Auto-dismissing toast (copy / copy-settings / paste feedback). */
+.fw-pb-toast {
+	position: fixed;
+	left: 50%;
+	bottom: 28px;
+	transform: translateX( -50% ) translateY( 10px );
+	z-index: 100060;
+	padding: 9px 18px;
+	background: #1e2126;
+	color: #fff;
+	border-radius: 6px;
+	font-size: 13px;
+	line-height: 1.3;
+	box-shadow: 0 6px 22px rgba( 0, 0, 0, .28 );
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity .18s ease, transform .18s ease;
+}
+
+.fw-pb-toast.is-visible {
+	opacity: 1;
+	transform: translateX( -50% ) translateY( 0 );
+}
+
 /* The "⋮ More" action menu (appended to <body>, fixed-positioned). */
 .fw-pb-ctxmenu {
 	position: fixed;
