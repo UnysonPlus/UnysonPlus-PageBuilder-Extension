@@ -410,9 +410,11 @@
 		hoveredEntry = (t && t.closest && t.closest('.fw-option-type-page-builder')) ? itemAt(t) : null;
 	}, true);
 
-	/** Trigger the builder's Undo/Redo control (if present + enabled). */
+	/** Trigger the builder's Undo/Redo control (if present + enabled). The links
+	 *  live in the builder's `.history-container` regardless of the option wrapper
+	 *  class, so target that. */
 	function builderHistory(dir) {
-		var $a = $('.fw-option-type-page-builder a.' + dir).first();
+		var $a = $('.history-container a.' + dir).first();
 		if ($a.length && !$a.hasClass('disabled')) { $a.trigger('click'); }
 	}
 
@@ -424,8 +426,16 @@
 		var t = e.target, tag = t && t.tagName;
 		var inField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable);
 
-		// Save — works everywhere; blocks the browser's Save-page dialog.
-		if (k === 's') { e.preventDefault(); $('#publish').trigger('click'); return; }
+		// Save — works everywhere; blocks the browser's Save-page dialog. Prefer
+		// "Save Draft" when it's available so Ctrl+S never accidentally PUBLISHES a
+		// draft; fall back to Publish/Update for already-published posts.
+		if (k === 's') {
+			e.preventDefault();
+			var $draft = $('#save-post');
+			if ($draft.length && $draft.is(':visible')) { $draft.trigger('click'); }
+			else { $('#publish').trigger('click'); }
+			return;
+		}
 		if (inField) { return; }
 
 		// Undo / Redo via the builder's own history control.
