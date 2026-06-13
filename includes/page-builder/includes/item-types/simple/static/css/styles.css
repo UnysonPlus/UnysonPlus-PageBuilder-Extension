@@ -1,5 +1,6 @@
 /* Thumb */
-.fw-option-type-page-builder .builder-item-type[data-builder-item-type="simple"] img {
+.fw-option-type-page-builder .builder-item-type[data-builder-item-type="simple"] img,
+.fw-option-type-page-builder .builder-item-type[data-builder-item-type="simple"] svg {
 	width: 16px;
 	height: 16px;
 }
@@ -24,8 +25,9 @@
 	border: none;
 }
 
-/* Icon */
-.pb-item-type-simple > img {
+/* Icon — PNG (legacy) renders as <img>; pixel SVG icons inline as <svg>. */
+.pb-item-type-simple > img,
+.pb-item-type-simple > svg {
 	width: 16px;
 	height: 16px;
 	margin-right: 9px;
@@ -38,11 +40,13 @@
     padding-right: 1px;
     border-radius: 1px;
 }
-.pb-item-type-simple:hover > img {
+.pb-item-type-simple:hover > img,
+.pb-item-type-simple:hover > svg {
 	opacity: 1;
 	visibility: visible;
 }
-body.rtl .pb-item-type-simple > img {
+body.rtl .pb-item-type-simple > img,
+body.rtl .pb-item-type-simple > svg {
 	margin-left: 9px;
 	margin-right: 0;
 }
@@ -82,3 +86,8 @@ body.rtl .pb-item-type-simple .controls {
 .pb-item-type-simple .controls i:hover {
 	color: #8c8c8c
 }
+
+/* Keep large preview images/figures inside the builder item box (e.g. converter
+   image blocks) — the 16×16 item icon is a direct `> img` and is unaffected. */
+.pb-item-type-simple > span img { max-width: 100%; height: auto; }
+.pb-item-type-simple > span figure { max-width: 100%; margin: 0; }
