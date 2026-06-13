@@ -59,6 +59,58 @@
 	opacity: 0.6;
 }
 
+/* The "⋮ More" action menu (appended to <body>, fixed-positioned). */
+.fw-pb-ctxmenu {
+	position: fixed;
+	z-index: 100050;
+	min-width: 188px;
+	padding: 5px;
+	background: #fff;
+	border: 1px solid #dcdfe3;
+	border-radius: 5px;
+	box-shadow: 0 6px 22px rgba( 0, 0, 0, .16 );
+	font-size: 13px;
+	line-height: 1.3;
+}
+
+.fw-pb-ctxmenu__item {
+	display: block;
+	width: 100%;
+	text-align: left;
+	padding: 7px 11px;
+	margin: 0;
+	border: 0;
+	background: transparent;
+	color: #2c3338;
+	border-radius: 4px;
+	cursor: pointer;
+	font: inherit;
+}
+
+.fw-pb-ctxmenu__item:hover {
+	background: #f0f2f4;
+}
+
+.fw-pb-ctxmenu__item.is-disabled {
+	opacity: .4;
+	cursor: default;
+	pointer-events: none;
+}
+
+.fw-pb-ctxmenu__item.is-danger {
+	color: #b32d2e;
+}
+
+.fw-pb-ctxmenu__item.is-danger:hover {
+	background: #fbeaea;
+}
+
+.fw-pb-ctxmenu__sep {
+	height: 1px;
+	margin: 4px 7px;
+	background: #e4e7ea;
+}
+
 /* Controls */
 .fw-responsive-button {
 	display: none !important;
