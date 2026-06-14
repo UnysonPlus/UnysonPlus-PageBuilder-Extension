@@ -10,7 +10,7 @@ $manifest['description'] = __(
     'fw'
 );
 
-$manifest['version']     = '1.6.43';
+$manifest['version']     = '1.6.46';
 $manifest['display']     = true;
 $manifest['standalone']  = true;
 
@@ -46,6 +46,14 @@ $manifest['requirements'] = array(
 /**
  * Changelog
  * -----------------------------------------------------------------------------
+ * 1.6.44 - Removed the Page Builder Settings "Bootstrap 5 Stylesheet"
+ *          ("Dequeue Bootstrap 5 CSS", `disable_bootstrap`) option. The plugin
+ *          no longer bundles or enqueues Bootstrap at all — the shortcodes are
+ *          now self-sufficient (see the framework changelog) — so the opt-out
+ *          has nothing left to control. The separate "Bootstrap 3 Legacy Mode"
+ *          (`load_bootstrap_3_legacy_css`, the .fw- prefixed legacy grid) is
+ *          unaffected and remains available for migrations.
+ *
  * 1.6.26 - Page Builder Settings: both styling-layer fields are now OPT-OUT
  *          (unchecked by default, feature still on by default). `enqueue_bootstrap`
  *          → `disable_bootstrap` ("Dequeue Bootstrap 5 CSS"); the new

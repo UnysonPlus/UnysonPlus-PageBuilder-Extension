@@ -372,7 +372,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		return !$disable_correction;
 	}
 
-	private function get_shortcode_notation($items)
+	private function get_shortcode_notation($items, $parent_type = null, $inner = false)
 	{
 		/**
 		 * @var Page_Builder_Item[] $registered_items
@@ -388,7 +388,29 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 				$shortcode_data = $registered_items[$item_type]->get_shortcode_data($item_attributes);
 				$tag     = $shortcode_data['tag'];
 				$atts    = isset($shortcode_data['atts']) ? $shortcode_data['atts'] : array();
-				$content = $item_items ? $this->get_shortcode_notation($item_items) : null;
+
+				/**
+				 * Nested-column aliasing. WordPress' shortcode parser is
+				 * non-recursive for the same tag, so a row synthesized INSIDE a
+				 * column — and the columns within that row — must use DISTINCT tags
+				 * or the repeated [row]/[column] open/close pairs mis-match (the
+				 * outer [column] binds to the first inner [/column], truncating the
+				 * output and leaking [/column][/row] as text). The fw_inner_row /
+				 * fw_inner_column tags are registered as aliases that render through
+				 * the same row / column instances. (Editor caps authoring at one
+				 * nested level; a deeper imported tree would re-collide at depth 2.)
+				 */
+				$child_inner = $inner;
+				if ($item_type === 'row' && ($parent_type === 'column' || $inner)) {
+					$tag         = 'fw_inner_row';
+					$child_inner = true;
+				} elseif ($item_type === 'column' && $inner) {
+					$tag = 'fw_inner_column';
+				}
+
+				$content = $item_items
+					? $this->get_shortcode_notation($item_items, $item_type, $child_inner)
+					: null;
 
 				$shortcode_notation .= $generator->generate_notation($tag, $atts, $content);
 			}
@@ -449,8 +471,63 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 
 			return $this->get_shortcode_notation($corrected_items_value);
 		} else {
+			// Correction is disabled (e.g. the live-editor re-rendering a SINGLE
+			// column/leaf, where full correction would wrap it in a section/row).
+			// We still must normalize nested columns here, otherwise a
+			// column-in-column subtree would emit raw same-tag [column] nesting and
+			// mis-parse exactly like the full-page path did before the alias fix.
+			$items_value = $this->normalize_nested_columns($items_value);
 			return $this->get_shortcode_notation($items_value);
 		}
+	}
+
+	/**
+	 * Standalone nested-column pass for the correction-DISABLED render path.
+	 * Wraps any column's child columns into a synthesized inner `row` item so the
+	 * notation generator emits the fw_inner_row / fw_inner_column alias tags.
+	 * (When correction is ON, the items-corrector already does this — this only
+	 * covers single-item re-renders that bypass the corrector.)
+	 *
+	 * @param array $items
+	 * @return array
+	 */
+	private function normalize_nested_columns($items) {
+		if (!is_array($items)) {
+			return $items;
+		}
+
+		foreach ($items as &$item) {
+			if (!isset($item['type'])) {
+				continue;
+			}
+
+			if (!empty($item['_items']) && is_array($item['_items'])) {
+				$item['_items'] = $this->normalize_nested_columns($item['_items']);
+			}
+
+			if ($item['type'] === 'column' && !empty($item['_items']) && is_array($item['_items'])) {
+				$has_child_column = false;
+				foreach ($item['_items'] as $child) {
+					if (isset($child['type']) && $child['type'] === 'column') {
+						$has_child_column = true;
+						break;
+					}
+				}
+
+				if ($has_child_column) {
+					$item['_items'] = array(
+						array(
+							'type'   => 'row',
+							'atts'   => array(),
+							'_items' => $item['_items'],
+						),
+					);
+				}
+			}
+		}
+		unset($item);
+
+		return $items;
 	}
 
 	/**

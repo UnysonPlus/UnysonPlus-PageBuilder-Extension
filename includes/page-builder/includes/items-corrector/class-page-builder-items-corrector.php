@@ -85,6 +85,28 @@ class _Page_Builder_Items_Corrector
 		 */
 		$shortcodes_extension = fw_ext('shortcodes');
 
+		/**
+		 * Nested columns (one+ level): before the row-grouping loop runs, give
+		 * every column its own inner row(s) when it contains child columns. This
+		 * recurses through correct_section(), so a column-in-column gets the exact
+		 * same "group columns into a .fw-row" treatment a section gets. Columns
+		 * with no child columns are returned untouched (today's behavior — their
+		 * simple items render directly inside the column).
+		 *
+		 * IMPORTANT (re-entrancy): correct_section() now uses a LOCAL row
+		 * container (below) instead of the shared $this->row_container, so the
+		 * recursive call for a column's contents can't clobber the width-fitting
+		 * state of the loop that's iterating this section's own columns.
+		 */
+		foreach ( $section as $k => $it ) {
+			if ( isset( $it['type'] ) && $it['type'] === 'column' ) {
+				$section[ $k ] = $this->correct_nested_columns( $it );
+			}
+		}
+
+		// Local, per-call row container — safe under the recursion above.
+		$row_container = new _Page_Builder_Items_Corrector_Row_Container();
+
 		$fixed_section = array();
 		for ($i = 0, $count = count($section); $i < $count; $i++) {
 			switch ($section[$i]['type']) {
@@ -100,11 +122,11 @@ class _Page_Builder_Items_Corrector
 						}
 						$fixed_section[] = $this->wrap_into_row( $columns );
 					} else {
-						$this->row_container->empty_container();
+						$row_container->empty_container();
 						$columns = array();
 
 						do {
-							if ( $this->row_container->add_column(
+							if ( $row_container->add_column(
 								apply_filters('fw:ext:page-builder:item-corrector:column-width', $section[ $i ]['width'], $section[ $i ])
 							) ) {
 								$columns[] = $section[ $i ];
@@ -112,8 +134,8 @@ class _Page_Builder_Items_Corrector
 								$fixed_section[] = $this->wrap_into_row( $columns );
 
 								$columns = array( $section[ $i ] );
-								$this->row_container->empty_container();
-								$this->row_container->add_column( $section[ $i ]['width'] );
+								$row_container->empty_container();
+								$row_container->add_column( $section[ $i ]['width'] );
 							}
 						} while ( isset( $section[ $i + 1 ] ) && $section[ $i + 1 ]['type'] === 'column' && ++$i );
 
@@ -157,6 +179,48 @@ class _Page_Builder_Items_Corrector
 		return $fixed_section;
 	}
 
+	/**
+	 * Nested columns: if a column's _items contain child columns, run those
+	 * _items back through correct_section() so the child columns get grouped
+	 * into an inner .fw-row (and any stray simple items get their own
+	 * column/row, exactly like at the section level). A column with no child
+	 * columns is returned unchanged so existing simple-only columns keep
+	 * rendering their leaves directly.
+	 *
+	 * Depth is naturally handled by the recursion (each level wraps its own
+	 * columns). The editor caps authoring at one level; this stays robust for
+	 * any depth that arrives via import or hand-authored JSON.
+	 *
+	 * @param array $column A page-builder column item (type === 'column').
+	 * @return array
+	 */
+	private function correct_nested_columns( $column ) {
+		if ( empty( $column['_items'] ) || ! is_array( $column['_items'] ) ) {
+			return $column;
+		}
+
+		$has_child_column = false;
+		foreach ( $column['_items'] as $child ) {
+			if ( isset( $child['type'] ) && $child['type'] === 'column' ) {
+				$has_child_column = true;
+				break;
+			}
+		}
+
+		if ( ! $has_child_column ) {
+			return $column;
+		}
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[nested-col] corrector: synthesizing inner row for column ' .
+				( isset( $column['atts']['unique_id'] ) ? $column['atts']['unique_id'] : '?' ) );
+		}
+
+		$column['_items'] = $this->correct_section( $column['_items'] );
+
+		return $column;
+	}
+
 	private function correct_root_items()
 	{
 		/**
@@ -183,17 +247,17 @@ class _Page_Builder_Items_Corrector
 			} else {
 				switch ($items[$i]['type']) {
 					case 'column':
-						$columns   = array($items[$i]);
+						$columns   = array($this->correct_nested_columns($items[$i]));
 						$this->row_container->empty_container();
 						$this->row_container->add_column($items[$i]['width']);
 						while (isset($items[$i+1]) && $items[$i+1]['type'] === 'column') {
 							$i++;
 							if ($this->row_container->add_column($items[$i]['width'])) {
-								$columns[] = $items[$i];
+								$columns[] = $this->correct_nested_columns($items[$i]);
 							} else {
 								$auto_generated_section[] = $this->wrap_into_row($columns);
 
-								$columns = array($items[$i]);
+								$columns = array($this->correct_nested_columns($items[$i]));
 								$this->row_container->empty_container();
 								$this->row_container->add_column($items[$i]['width']);
 							}
