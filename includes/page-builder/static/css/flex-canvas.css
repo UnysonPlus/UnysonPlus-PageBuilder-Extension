@@ -70,3 +70,21 @@
 	flex: 0 0 100%;
 	max-width: 100%;
 }
+
+/* ── Uniform canvas gutter for columns (match the Flexbox element) ──────────
+   The fw-col-sm-* gutter (frontend-grid.css) is the wide live-site gutter, which
+   reads as an oversized gap. Replace it with the SAME small even spacing the
+   Flexbox uses: zero the row's negative margin, then 5px padding on the row AND
+   5px on each column → the gap BETWEEN columns and from the section EDGES are both
+   ~10px. Strictly EDITOR-ONLY (scoped to .fw-option-type-builder); the live grid
+   (frontend-grid.css) is untouched. Columns are border-box, so widths stay correct. */
+.fw-option-type-builder .builder-items.fw-pb-flex-row {
+	margin-left: 0;
+	margin-right: 0;
+	padding-left: 5px;  /* edge inset → 5px row + 5px col = 10px, equal to the gap */
+	padding-right: 5px;
+}
+.fw-option-type-builder .builder-items.fw-pb-flex-row > .builder-item.fw-pb-flex-col {
+	padding-left: 5px;
+	padding-right: 5px;
+}

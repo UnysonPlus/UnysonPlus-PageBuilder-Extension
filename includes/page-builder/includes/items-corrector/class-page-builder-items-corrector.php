@@ -7,6 +7,7 @@ class _Page_Builder_Items_Corrector
 	private $column_wrap ;
 	private $row_wrap;
 	private $section_wrap;
+	private $container_wrap; // optional — only when the `container` item type is registered
 
 	private $items;
 
@@ -23,6 +24,37 @@ class _Page_Builder_Items_Corrector
 		$this->section_wrap = $item_types['section']->get_value_from_attributes(array(
 			'_items' => array()
 		));
+
+		// The Container layout element is optional. When present we can wrap a section's own
+		// loose columns into its default .fw-container so user Container elements sit beside it.
+		if ( isset( $item_types['container'] ) ) {
+			$this->container_wrap = $item_types['container']->get_value_from_attributes(array(
+				'_items' => array()
+			));
+		}
+	}
+
+	/**
+	 * Wrap items (rows) into a Container item — the section's own default .fw-container, or a
+	 * user Container element. `$fluid` toggles .fw-container vs .fw-container-fluid.
+	 *
+	 * @param array $items
+	 * @param bool  $fluid
+	 * @return array
+	 */
+	public function wrap_into_container($items, $fluid = false)
+	{
+		if ( ! is_array( $this->container_wrap ) ) {
+			// Container item type not registered — leave the rows as-is (no restructure).
+			return $this->wrap_into_row( $items );
+		}
+		$wrapper           = $this->container_wrap;
+		$wrapper['_items'] = $items;
+		$wrapper['atts']   = array_merge(
+			isset( $wrapper['atts'] ) && is_array( $wrapper['atts'] ) ? $wrapper['atts'] : array(),
+			array( 'is_fullwidth' => $fluid ? true : false )
+		);
+		return $wrapper;
 	}
 
 	public function wrap_into_column($items, $data = array())
@@ -73,17 +105,53 @@ class _Page_Builder_Items_Corrector
 					$item['atts']['first_in_builder'] = true;
 				}
 
-				$item['_items'] = $this->correct_section($item['_items']);
+				// Conditional Container support: ONLY when this section actually contains a
+				// `container` item do we restructure its content (lift the section's own loose
+				// columns into a default .fw-container so the Container elements sit beside it)
+				// and flag the section view to skip its own .fw-container wrapper. A section with
+				// NO container is left exactly as before — same code path, identical output.
+				$has_container = false;
+				if ( is_array( $item['_items'] ) ) {
+					foreach ( $item['_items'] as $child ) {
+						// Flexbox is treated like Container here: its presence makes the
+						// section skip its own .fw-container wrapper so the flexbox (a
+						// self-contained flex band) renders directly under <section>.
+						if ( isset( $child['type'] ) && ( $child['type'] === 'container' || $child['type'] === 'flexbox' ) ) {
+							$has_container = true;
+							break;
+						}
+					}
+				}
+				if ( $has_container ) {
+					$item['atts']['has_inner_containers'] = true;
+				}
+
+				$item['_items'] = $this->correct_section(
+					$item['_items'],
+					! empty( $item['atts']['is_fullwidth'] ),
+					$has_container
+				);
 			}
 		}
 	}
 
-	public function correct_section($section)
+	public function correct_section($section, $default_fluid = false, $has_container = null)
 	{
 		/**
 		 * @var FW_Extension_Shortcodes $shortcodes_extension
 		 */
 		$shortcodes_extension = fw_ext('shortcodes');
+
+		// Detect Container elements among this section's items (unless the caller already knows).
+		if ( $has_container === null ) {
+			$has_container = false;
+			foreach ( $section as $it ) {
+				if ( isset( $it['type'] ) && ( $it['type'] === 'container' || $it['type'] === 'flexbox' ) ) {
+					$has_container = true;
+					break;
+				}
+			}
+		}
 
 		/**
 		 * Nested columns (one+ level): before the row-grouping loop runs, give
@@ -161,6 +229,26 @@ class _Page_Builder_Items_Corrector
 					}
 					break;
 
+				// A Container element: correct its OWN columns into rows (recursively) and keep
+				// it as a sibling — it is NOT wrapped in a row/column. Its boxed/full-width class
+				// is rendered by the container view from its own is_fullwidth att.
+				case 'container':
+					$section[$i]['_items'] = $this->correct_section(
+						isset( $section[$i]['_items'] ) && is_array( $section[$i]['_items'] ) ? $section[$i]['_items'] : array(),
+						! empty( $section[$i]['atts']['is_fullwidth'] )
+					);
+					$fixed_section[] = $section[$i];
+					break;
+
+				// A Flexbox element: a self-contained flex container. Keep it as a
+				// SIBLING (NOT wrapped in a row/column) AND leave its children
+				// untouched — they are direct flex items (the flexbox view emits its
+				// own <tag class="d-flex …">), so running them through the grid
+				// corrector would wrap them in columns and break the flex layout.
+				case 'flexbox':
+					$fixed_section[] = $section[$i];
+					break;
+
 				// Page Builder custom item types
 				default:
 					$fixed_section[] = $this->wrap_into_row(
@@ -176,7 +264,36 @@ class _Page_Builder_Items_Corrector
 			}
 		}
 
-		return $fixed_section;
+		// No Container element in this section → behave exactly as before (rows as-is). This is
+		// the unchanged path for every existing section.
+		if ( ! $has_container ) {
+			return $fixed_section;
+		}
+
+		// Container(s) present → group the section's own consecutive row items into its default
+		// .fw-container (boxed/fluid per the section's is_fullwidth) and leave Container elements
+		// as siblings. Result: [default container][container][…] — siblings, never nested. The
+		// section view, flagged via has_inner_containers, renders these directly (no extra wrap).
+		$result  = array();
+		$pending = array();
+		foreach ( $fixed_section as $it ) {
+			// Containers AND flexboxes stay as siblings; loose rows around them get
+			// grouped into the section's default .fw-container.
+			if ( isset( $it['type'] ) && ( $it['type'] === 'container' || $it['type'] === 'flexbox' ) ) {
+				if ( $pending ) {
+					$result[] = $this->wrap_into_container( $pending, $default_fluid );
+					$pending = array();
+				}
+				$result[] = $it;
+			} else {
+				$pending[] = $it;
+			}
+		}
+		if ( $pending ) {
+			$result[] = $this->wrap_into_container( $pending, $default_fluid );
+		}
+
+		return $result;
 	}
 
 	/**
@@ -311,6 +428,21 @@ class _Page_Builder_Items_Corrector
 								);
 							}
 						}
+						break;
+
+					case 'flexbox':
+						// A root-level flexbox is its OWN top-level band — no auto
+						// <section> wrapper (the true flex-container model). Flush any
+						// pending auto-section first so order is preserved, then emit the
+						// flexbox as-is; its children stay un-wrapped (they are flex items,
+						// and a nested flexbox is emitted via the fw_inner_flexbox alias).
+						if ( ! empty( $auto_generated_section ) ) {
+							$fixed_items[] = $this->wrap_into_section( $auto_generated_section, array(
+								'atts' => array( 'auto_generated' => true ),
+							) );
+							$auto_generated_section = array();
+						}
+						$fixed_items[] = $items[$i];
 						break;
 
 					default:

@@ -10,7 +10,7 @@ $manifest['description'] = __(
     'fw'
 );
 
-$manifest['version']     = '1.6.46';
+$manifest['version']     = '1.6.55';
 $manifest['display']     = true;
 $manifest['standalone']  = true;
 
@@ -46,6 +46,15 @@ $manifest['requirements'] = array(
 /**
  * Changelog
  * -----------------------------------------------------------------------------
+ * 1.6.47 - Items-corrector supports the new Container layout element. When a section
+ *          contains one or more `container` items, the corrector lifts the section's
+ *          OWN columns into a default `.fw-container` item and keeps the Container
+ *          elements as siblings, so they render as sibling `.fw-container[-fluid]`
+ *          bands (never nested). The section is flagged (`has_inner_containers`) so
+ *          its view skips its own wrapper. Sections with NO container are untouched —
+ *          same path, identical output. A Container's own columns are grouped into
+ *          rows just like a section's.
+ *
  * 1.6.44 - Removed the Page Builder Settings "Bootstrap 5 Stylesheet"
  *          ("Dequeue Bootstrap 5 CSS", `disable_bootstrap`) option. The plugin
  *          no longer bundles or enqueues Bootstrap at all — the shortcodes are

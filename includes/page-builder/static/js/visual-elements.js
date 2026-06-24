@@ -150,7 +150,7 @@
 	function pasteSettings(model) {
 		var clip = readSettingsClipboard();
 		if (!clip) {
-			window.alert(l10n('noSettings', 'No settings copied yet — use "Copy Settings" first.'));
+			fw.notify(l10n('noSettings', 'No settings copied yet — use "Copy Settings" first.'), 'warning');
 			return;
 		}
 		var types = optionLeafTypes(itemOptions(model));
@@ -163,7 +163,7 @@
 			applied++;
 		});
 		if (!applied) {
-			window.alert(l10n('noSettingsApplied', 'None of the copied settings apply to this element.'));
+			fw.notify(l10n('noSettingsApplied', 'None of the copied settings apply to this element.'), 'warning');
 			return;
 		}
 		model.set('atts', atts);
@@ -183,7 +183,7 @@
 	function pasteRelativeTo(model, builder) {
 		var clip = readClipboard();
 		if (!clip) {
-			window.alert(l10n('clipboardEmpty', 'Nothing to paste — copy an element first.'));
+			fw.notify(l10n('clipboardEmpty', 'Nothing to paste — copy an element first.'), 'warning');
 			return;
 		}
 		var kind = kindOf(clip);
@@ -205,9 +205,9 @@
 			toast(l10n('pasted', 'Pasted'));
 			return;
 		}
-		window.alert(kind === 'column'
+		fw.notify(kind === 'column'
 			? l10n('pasteNeedSection', 'Paste a column after another column, or onto a section.')
-			: l10n('pasteNeedColumn', 'Paste an element after another element, or onto a column.'));
+			: l10n('pasteNeedColumn', 'Paste an element after another element, or onto a column.'), 'warning');
 	}
 
 	/* ---- device-aware hide ------------------------------------------------ */

@@ -47,10 +47,12 @@
 	background: #fff;
 	gap: 6px;
 	user-select: none;
+	border-radius: .25rem;
 }
 
 .section-sorter-item:last-child {
 	border-bottom: none;
+	margin-bottom: 0;
 }
 
 .section-sorter-item:hover {

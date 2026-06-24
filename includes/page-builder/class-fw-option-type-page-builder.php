@@ -151,7 +151,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 				'fw_option_type_' . str_replace('-', '_', $this->get_type()) . '_editor_integration_data',
 				array(
 					'l10n' => array(
-						'showButton' => __('Unyson Builder', 'fw'),
+						'showButton' => __('Unyson+ Builder', 'fw'),
 						'hideButton' => __('Default Editor', 'fw'),
 						'eye' => __('Hide / Show', 'fw'),
 						'responsive' => __( 'Display Controls', 'fw' ),
@@ -302,7 +302,10 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 	}
 
 	/*
-	 * Sorts the tabs so that the layout tab comes first
+	 * Sorts the element-picker tabs into a deliberate, logical order
+	 * (Layout → Content → Media → Interactive → Components → Header/Footer)
+	 * rather than alphabetically. Any tab not in the list (e.g. third-party
+	 * or WooCommerce Elements) falls to the end, alphabetically among itself.
 	 */
 	protected function sort_thumbnails(&$thumbnails)
 	{
@@ -311,14 +314,25 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 
 	private function sort_thumbnails_helper($tab1, $tab2)
 	{
-		$layout_tab = __('Layout Elements', 'fw');
-		if ($tab1 === $layout_tab) {
-			return -1;
-		} elseif ($tab2 === $layout_tab) {
-			return 1;
+		$order = array(
+			__('Structure', 'fw')              => -2, // semantic HTML-tag containers (Flexbox) — first
+			__('Dynamic Content', 'fw')        => -1, // post title/content/etc. — second
+			__('Layout Elements', 'fw')        => 0,
+			__('Content Elements', 'fw')       => 1,
+			__('Media Elements', 'fw')         => 2,
+			__('Interactive Elements', 'fw')   => 3,
+			__('Components', 'fw')             => 4,
+			__('Header/Footer Elements', 'fw') => 5,
+		);
+
+		$i1 = isset($order[$tab1]) ? $order[$tab1] : 100;
+		$i2 = isset($order[$tab2]) ? $order[$tab2] : 100;
+
+		if ($i1 === $i2) {
+			return strcasecmp($tab1, $tab2);
 		}
 
-		return strcasecmp($tab1, $tab2);
+		return ($i1 < $i2) ? -1 : 1;
 	}
 
 	/**
@@ -406,6 +420,11 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 					$child_inner = true;
 				} elseif ($item_type === 'column' && $inner) {
 					$tag = 'fw_inner_column';
+				} elseif ($item_type === 'flexbox' && $parent_type === 'flexbox') {
+					// A flexbox directly inside another flexbox uses the alias so the
+					// repeated [flexbox] open/close tags don't mis-pair. (Editor caps
+					// authoring at one nested level — see allowIncomingType.)
+					$tag = 'fw_inner_flexbox';
 				}
 
 				$content = $item_items
