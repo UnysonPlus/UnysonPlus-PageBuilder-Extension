@@ -315,14 +315,16 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 	private function sort_thumbnails_helper($tab1, $tab2)
 	{
 		$order = array(
-			__('Structure', 'fw')              => -2, // semantic HTML-tag containers (Flexbox) — first
-			__('Dynamic Content', 'fw')        => -1, // post title/content/etc. — second
+			__('Structure', 'fw')              => -3, // semantic HTML-tag containers (Flexbox) — first
+			__('Dynamic Content', 'fw')        => -2, // post title/content/etc. — second
+			__('Header/Footer Elements', 'fw') => -1, // site chrome (menu/nav/search/logo) — third; it is
+			                                          // Theme-Builder-only (isolated elsewhere), so it
+			                                          // groups beside the other TB-only tabs.
 			__('Layout Elements', 'fw')        => 0,
 			__('Content Elements', 'fw')       => 1,
 			__('Media Elements', 'fw')         => 2,
 			__('Interactive Elements', 'fw')   => 3,
 			__('Components', 'fw')             => 4,
-			__('Header/Footer Elements', 'fw') => 5,
 		);
 
 		$i1 = isset($order[$tab1]) ? $order[$tab1] : 100;
