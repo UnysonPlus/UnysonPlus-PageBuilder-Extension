@@ -388,7 +388,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		return !$disable_correction;
 	}
 
-	private function get_shortcode_notation($items, $parent_type = null, $inner = false)
+	private function get_shortcode_notation($items, $parent_type = null, $inner = false, $flex_depth = 0)
 	{
 		/**
 		 * @var Page_Builder_Item[] $registered_items
@@ -417,20 +417,30 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 				 * nested level; a deeper imported tree would re-collide at depth 2.)
 				 */
 				$child_inner = $inner;
+				$child_flex_depth = $flex_depth;
 				if ($item_type === 'row' && ($parent_type === 'column' || $inner)) {
 					$tag         = 'fw_inner_row';
 					$child_inner = true;
 				} elseif ($item_type === 'column' && $inner) {
 					$tag = 'fw_inner_column';
-				} elseif ($item_type === 'flexbox' && $parent_type === 'flexbox') {
-					// A flexbox directly inside another flexbox uses the alias so the
-					// repeated [flexbox] open/close tags don't mis-pair. (Editor caps
-					// authoring at one nested level — see allowIncomingType.)
-					$tag = 'fw_inner_flexbox';
+				} elseif ($item_type === 'flexbox') {
+					// A flexbox nested inside another flexbox must use a DISTINCT alias
+					// per nesting level — WP's shortcode parser is non-recursive for the
+					// same tag, so [flexbox] inside [flexbox] (or alias inside the same
+					// alias) mis-pairs and self-closes the inner box, leaking the
+					// trailing close tag as text. The editor caps authoring at one nested
+					// level, but a hand-authored / imported / theme-builder-preset tree
+					// can legitimately nest deeper. fw_flexbox_alias_for_depth() cycles
+					// through a pool of registered aliases keyed by depth so no
+					// parent/child pair ever shares the same tag at any depth.
+					if ($flex_depth > 0) {
+						$tag = fw_flexbox_alias_for_depth($flex_depth);
+					}
+					$child_flex_depth = $flex_depth + 1;
 				}
 
 				$content = $item_items
-					? $this->get_shortcode_notation($item_items, $item_type, $child_inner)
+					? $this->get_shortcode_notation($item_items, $item_type, $child_inner, $child_flex_depth)
 					: null;
 
 				$shortcode_notation .= $generator->generate_notation($tag, $atts, $content);
