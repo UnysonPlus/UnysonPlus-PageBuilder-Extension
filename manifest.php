@@ -10,7 +10,7 @@ $manifest['description'] = __(
     'fw'
 );
 
-$manifest['version']     = '1.6.57';
+$manifest['version']     = '1.6.66';
 $manifest['display']     = true;
 $manifest['standalone']  = true;
 
@@ -46,6 +46,28 @@ $manifest['requirements'] = array(
 /**
  * Changelog
  * -----------------------------------------------------------------------------
+ * 1.6.60 - New "Insert Section" toolbar feature: a prebuilt column-layout inserter.
+ *          An "Insert Section" link is injected into the builder header toolbar
+ *          (before Templates) and opens a modal whose TABS are the layout categories
+ *          — Equal Columns (1–6 plus a 12× 1/12 row), Offset & Sidebar (asymmetric
+ *          splits plus two- and three-row sidebar layouts), Multi-Row, Multi-Column,
+ *          and Masonry — holding 70+ predefined layouts. Multi-Column uses column-in-
+ *          column nesting (an outer column holding its own sub-rows, one level deep);
+ *          Masonry inserts mixed-width columns into a masonry_section; its preview
+ *          renders those columns with the same sequential 12-col wrap the section
+ *          uses, so the thumbnail matches the inserted result exactly. Picking one
+ *          appends a new section (or masonry_section)
+ *          pre-filled with those columns to the end of the page. Insertion reuses the
+ *          Templates "Add From Library" primitive (builder.rootItems.add of a
+ *          {type:'section',_items:[…columns]} tree, recursed by createItemsFromJSON),
+ *          so the catalog is just data and trivial to extend. The modal + thumbnails
+ *          use the page builder's OWN canvas palette (light-blue section card,
+ *          dashed teal-blue column boxes, #01729c accent) so it reads as a miniature
+ *          of the real canvas. New editor-only assets static/js/insert-section.js +
+ *          static/css/insert-section.css, injected via the fw:option-type:builder:init
+ *          event like section-sorter.js; a category is shown only when its section
+ *          type is registered (so Masonry is hidden if that shortcode is disabled).
+ *
  * 1.6.47 - Items-corrector supports the new Container layout element. When a section
  *          contains one or more `container` items, the corrector lifts the section's
  *          OWN columns into a default `.fw-container` item and keeps the Container
