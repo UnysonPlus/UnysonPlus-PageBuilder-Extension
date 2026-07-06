@@ -1,0 +1,202 @@
+/* Insert Section — toolbar link + predefined-layout modal.
+   Bespoke management UI (a tabbed card grid), intentionally NOT a postbox/metabox.
+   Colours follow the page builder's OWN canvas (teal-blue section/column accents,
+   #01729c / #019aca), not any other builder's palette. */
+
+/* ---- Toolbar link ------------------------------------------------------- */
+
+/* Deterministic toolbar order so "Insert Section" sits BEFORE Templates
+   regardless of which add-on script appends first. History keeps order:-1. */
+.fw-builder-header-tools > .insert-section-container { order: 1; }
+.fw-builder-header-tools > .template-container       { order: 2; }
+.fw-builder-header-tools > .section-sorter-container { order: 3; }
+
+.insert-section-container .insert-section-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	text-decoration: none;
+	cursor: pointer;
+}
+.insert-section-container .insert-section-btn .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+}
+.insert-section-container .insert-section-btn:hover { text-decoration: underline; }
+
+/* ---- Modal -------------------------------------------------------------- */
+
+.upb-is-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: none;
+	align-items: flex-start;
+	justify-content: center;
+	padding: 5vh 16px;
+	background: rgba(13, 35, 45, 0.5);
+}
+.upb-is-overlay.is-open { display: flex; }
+
+.upb-is-modal {
+	background: #fff;
+	width: min(900px, 100%);
+	max-height: 88vh;
+	display: flex;
+	flex-direction: column;
+	border-radius: 10px;
+	box-shadow: 0 24px 60px rgba(1, 58, 79, 0.32);
+	overflow: hidden;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.upb-is-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 17px 22px;
+	border-bottom: 1px solid #e3edf1;
+	flex: none;
+}
+.upb-is-head h2 {
+	margin: 0;
+	font-size: 19px;
+	font-weight: 700;
+	color: #16323c;
+}
+.upb-is-close {
+	border: none;
+	background: transparent;
+	font-size: 24px;
+	line-height: 1;
+	color: #6b7c83;
+	cursor: pointer;
+	padding: 4px 6px;
+	border-radius: 6px;
+}
+.upb-is-close:hover { background: #eef5f8; color: #16323c; }
+
+/* ---- Tabs (one per layout category) ------------------------------------ */
+.upb-is-tabs {
+	display: flex;
+	gap: 4px;
+	padding: 0 14px;
+	border-bottom: 1px solid #e3edf1;
+	flex: none;
+	overflow-x: auto;
+}
+.upb-is-tab {
+	appearance: none;
+	border: none;
+	background: transparent;
+	padding: 13px 12px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #5a727c;
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.upb-is-tab:hover { color: #01729c; }
+.upb-is-tab.is-active {
+	color: #01729c;
+	border-bottom-color: #01729c;
+}
+
+.upb-is-body {
+	padding: 20px 22px 24px;
+	overflow-y: auto;
+}
+
+.upb-is-panel { display: none; }
+.upb-is-panel.is-active { display: block; }
+
+.upb-is-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+	gap: 14px;
+}
+
+/* Cards: mirror a builder SECTION (light blue #f8fdff card holding columns). */
+.upb-is-card {
+	appearance: none;
+	border: 1px solid #d7e6ec;
+	background: #f8fdff;
+	border-radius: 8px;
+	padding: 13px;
+	cursor: pointer;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+}
+.upb-is-card:hover {
+	border-color: #01729c;
+	box-shadow: 0 4px 14px rgba(1, 114, 156, 0.18);
+}
+.upb-is-card:active { transform: translateY(1px); }
+.upb-is-card:focus-visible { outline: 2px solid #01729c; outline-offset: 2px; }
+
+/* Thumbnail: rows of proportional bars styled like builder COLUMN boxes
+   (light fill + dashed border), echoing the real canvas. */
+.upb-is-thumb {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	height: 64px;
+}
+.upb-is-row {
+	display: flex;
+	gap: 5px;
+	flex: 1;
+	min-height: 0;
+}
+.upb-is-bar {
+	display: block;
+	flex: 1;
+	height: 100%;
+	background: #eef3f5;
+	border: 1px dashed #b9d3dd;
+	border-radius: 3px;
+}
+.upb-is-card:hover .upb-is-bar {
+	background: #e2f1f7;
+	border-color: #01729c;
+}
+
+/* Nested (Multi-Column): an outer column box holding stacked sub-rows. */
+.upb-is-col {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	min-width: 0;
+}
+.upb-is-subrow {
+	display: flex;
+	gap: 5px;
+	flex: 1;
+	min-height: 0;
+}
+
+/* Masonry: mixed-width columns wrapping in a sequential 12-col grid (equal-height,
+   no row-spans, no dense backfill) — an exact preview of the inserted columns,
+   staggering wherever a column doesn't fill the row. */
+.upb-is-thumb.is-masonry {
+	display: grid;
+	grid-template-columns: repeat(12, 1fr);
+	grid-auto-rows: 28px;
+	gap: 5px;
+	height: auto;
+}
+.upb-is-thumb.is-masonry .upb-is-mb {
+	background: #eef3f5;
+	border: 1px dashed #b9d3dd;
+	border-radius: 3px;
+}
+.upb-is-card:hover .upb-is-thumb.is-masonry .upb-is-mb {
+	background: #e2f1f7;
+	border-color: #01729c;
+}
+
+@media (max-width: 560px) {
+	.upb-is-grid { grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); }
+}

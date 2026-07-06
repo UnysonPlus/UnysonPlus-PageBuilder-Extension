@@ -231,6 +231,43 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			)
 		);
 
+		// Insert Section — Divi-style prebuilt-layout inserter. Adds an "Insert
+		// Section" toolbar link (before Templates) that opens a modal of predefined
+		// column layouts; picking one appends a section pre-filled with those
+		// columns to the end of the page. Editor-only.
+		wp_enqueue_style(
+			'fw-option-type-' . $this->get_type() . '-insert-section',
+			$static_uri . '/css/insert-section.css',
+			array( 'fw-option-type-' . $this->get_type() ),
+			$version
+		);
+
+		wp_enqueue_script(
+			'fw-option-type-' . $this->get_type() . '-insert-section',
+			$static_uri . '/js/insert-section.js',
+			array( 'jquery', 'fw-events', 'underscore', 'fw-section-like-factory' ),
+			$version,
+			true
+		);
+
+		wp_localize_script(
+			'fw-option-type-' . $this->get_type() . '-insert-section',
+			'_fw_page_builder_insert_section',
+			array(
+				'l10n' => array(
+					'link'       => __( 'Insert Section', 'fw' ),
+					'title'      => __( 'Insert Section', 'fw' ),
+					'newSection' => __( 'New Section', 'fw' ),
+					'close'      => __( 'Close', 'fw' ),
+					'equal'       => __( 'Equal Columns', 'fw' ),
+					'offset'      => __( 'Offset & Sidebar', 'fw' ),
+					'multirow'    => __( 'Multi-Row', 'fw' ),
+					'multicolumn' => __( 'Multi-Column', 'fw' ),
+					'masonry'     => __( 'Masonry', 'fw' ),
+				),
+			)
+		);
+
 		// Device preview toggle (Desktop / Tablet / Phone) — re-previews the canvas
 		// at each breakpoint so responsive column widths/offsets and masonry column
 		// counts are visible while editing. Editor-only.
