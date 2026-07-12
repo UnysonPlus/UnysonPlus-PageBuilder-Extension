@@ -347,6 +347,66 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 	protected function sort_thumbnails(&$thumbnails)
 	{
 		uksort($thumbnails, array($this, 'sort_thumbnails_helper'));
+
+		/*
+		 * Within the Layout Elements tab, order the width tiles + structural
+		 * elements by a deliberate human sequence — halves, thirds, quarters,
+		 * sixths, twelfths, then the fifths, then the structural containers —
+		 * instead of the lexical title sort the parent's ksort() produces
+		 * ("1/1, 1/12, 1/2, 1/3, …", which scatters 1/5 and the new 2/5·3/5·4/5
+		 * fifths). The thumbnails are keyed by their TITLE (see
+		 * Page_Builder_Item::get_thumbnails), so the order map is keyed by title.
+		 * Any tile not listed (e.g. a third-party layout element) falls to the
+		 * end, keeping its lexical order among the unlisted ones.
+		 */
+		$layout_tab = __( 'Layout Elements', 'fw' );
+		if ( isset( $thumbnails[ $layout_tab ] ) && is_array( $thumbnails[ $layout_tab ] ) ) {
+			uksort( $thumbnails[ $layout_tab ], array( $this, 'sort_layout_elements_helper' ) );
+		}
+	}
+
+	/**
+	 * Comparator for the Layout Elements tab items (keyed by title). Widths run
+	 * in a logical fraction order, then Auto Column, then the structural
+	 * section-like containers. Unlisted titles sort last, alphabetically.
+	 */
+	private function sort_layout_elements_helper( $title1, $title2 )
+	{
+		static $order = null;
+		if ( null === $order ) {
+			$order = array_flip( array(
+				'1/1',
+				'1/2',
+				'1/3',
+				'2/3',
+				'1/4',
+				'3/4',
+				'1/6',
+				'5/6',
+				'1/12',
+				'5/12',
+				'7/12',
+				'11/12',
+				'1/5 (20%)',
+				'2/5 (40%)',
+				'3/5 (60%)',
+				'4/5 (80%)',
+				__( 'Auto Column', 'fw' ),
+				__( 'Container', 'fw' ),
+				__( 'Section', 'fw' ),
+				__( 'Bleed Section', 'fw' ),
+				__( 'Masonry Section', 'fw' ),
+			) );
+		}
+
+		$i1 = isset( $order[ $title1 ] ) ? $order[ $title1 ] : 1000;
+		$i2 = isset( $order[ $title2 ] ) ? $order[ $title2 ] : 1000;
+
+		if ( $i1 === $i2 ) {
+			return strcasecmp( $title1, $title2 );
+		}
+
+		return ( $i1 < $i2 ) ? -1 : 1;
 	}
 
 	private function sort_thumbnails_helper($tab1, $tab2)

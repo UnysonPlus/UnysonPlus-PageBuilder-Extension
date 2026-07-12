@@ -450,6 +450,30 @@ class FW_Extension_Page_Builder extends FW_Extension {
 			return $posts;
 		}
 
+		/**
+		 * Only the MAIN query renders builder content (through the_content).
+		 * Secondary queries — get_pages() page-select dropdowns (Theme Settings),
+		 * nav menus, related-post widgets, … — list posts by title/ID and never
+		 * display their builder content, so converting each queried post's full
+		 * builder tree here is pure waste. On a site with many builder pages it is
+		 * catastrophic: loading Theme Settings calls get_pages() several times, each
+		 * returning EVERY page, so ~100 pages each get a multi-MB json→shortcodes
+		 * conversion and exhaust the PHP memory limit (this is the "512MB exhausted
+		 * in class-fw-option-type-page-builder.php" fatal that only logged-in users
+		 * hit — logged-out visitors never load Theme Settings). So skip everything
+		 * that isn't the main query. The DOING_AJAX branch above is preserved for
+		 * plugins that fetch rendered content over ajax, and previews still convert.
+		 * NOTE: the get_pages filter passes an args ARRAY as $query (not a WP_Query),
+		 * which the instanceof check below also correctly excludes.
+		 */
+		if (
+			! ( defined( 'DOING_AJAX' ) && DOING_AJAX )
+			&& ! is_preview()
+			&& ! ( $query instanceof WP_Query && $query->is_main_query() )
+		) {
+			return $posts;
+		}
+
 		if ( ! isset( $posts[1] ) && is_preview() ) {
 
 			$preview = ( $rewisions = wp_get_post_revisions( $posts[0]->ID ) ) && $rewisions ? reset( $rewisions ) : $posts[0];

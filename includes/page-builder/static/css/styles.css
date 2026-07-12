@@ -153,6 +153,23 @@
 	display: none !important;
 }
 
+/* In collapse mode every control icon is hidden (rule above). 1/5 (fw-col-sm-15)
+   and 1/6 (fw-col-sm-2) columns are wide enough to fit the COMPLETE control panel,
+   so bring back EVERY control icon for them — Settings / Duplicate / Delete /
+   Collapse plus the "⋮ More" menu (`.fw-shortcode-more`) — matching the wider
+   columns. Only genuinely tiny columns (1/12 = fw-col-sm-1) stay fully collapsed
+   so their controls don't overlap and block the width changer. The single
+   `.fw-responsive-button` toggle stays hidden for these widths (no need to expand,
+   the full panel is already shown). */
+.builder-item.fw-col-sm-15.fw-responsive-controls > .pb-item-type-column > .panel > .panel-right > .controls > i:not(.fw-responsive-button),
+.builder-item.fw-col-sm-2.fw-responsive-controls > .pb-item-type-column > .panel > .panel-right > .controls > i:not(.fw-responsive-button) {
+	display: inline-flex !important;
+}
+.builder-item.fw-col-sm-15.fw-responsive-controls > .pb-item-type-column > .panel > .panel-right > .controls > i.fw-responsive-button,
+.builder-item.fw-col-sm-2.fw-responsive-controls > .pb-item-type-column > .panel > .panel-right > .controls > i.fw-responsive-button {
+	display: none !important;
+}
+
 .fw-responsive-controls.fw-display-controls > .pb-item-type-simple > .controls > i:not(.fw-responsive-button),
 .fw-responsive-controls.fw-display-controls > .pb-item-type-column > .panel > .panel-right > .controls > i:not(.fw-responsive-button) {
 	display: inline-flex !important;
