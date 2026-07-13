@@ -155,7 +155,8 @@ class FW_Extension_Page_Builder extends FW_Extension {
 			DOING_AJAX === true &&
 			(
 				FW_Request::POST( 'action', '' ) === 'fw_backend_options_render' ||
-				FW_Request::POST( 'action', '' ) === 'fw_backend_options_get_values'
+				FW_Request::POST( 'action', '' ) === 'fw_backend_options_get_values' ||
+				FW_Request::POST( 'action', '' ) === 'upw_anim_render_card' // lazy animation-card render
 			)
 		) {
 			$this->get_parent()->load_shortcodes();
