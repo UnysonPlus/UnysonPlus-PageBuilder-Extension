@@ -311,7 +311,31 @@
 	});
 
 	function itemData (shortcode) {
-		return page_builder_item_type_simple_data[shortcode];
+		var data = page_builder_item_type_simple_data[shortcode];
+
+		/**
+		 * Re-inflate deduped option subtrees. Big option subtrees that repeat verbatim
+		 * across elements (the shared Animations tab — ~500KB each with the Animation
+		 * Engine active) are localized ONCE in ..._shared_options and referenced by a
+		 * content hash from each element's data (see the PHP side in
+		 * class-page-builder-simple-item.php). Substitute the reference back in-place
+		 * the first time an element's data is requested.
+		 */
+		if (
+			data && data.options
+			&&
+			typeof page_builder_item_type_simple_shared_options !== 'undefined'
+		) {
+			_.each(data.options, function (opt, idx) {
+				if (opt && opt['__fw_shared_option__']) {
+					data.options[idx] =
+						page_builder_item_type_simple_shared_options.subtrees[opt['__fw_shared_option__']]
+						|| opt;
+				}
+			});
+		}
+
+		return data;
 	}
 })(fwEvents);
 

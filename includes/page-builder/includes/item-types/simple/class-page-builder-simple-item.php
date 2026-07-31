@@ -33,11 +33,7 @@ class Page_Builder_Simple_Item extends Page_Builder_Item
 		);
 
 		{
-			wp_localize_script(
-				$this->get_builder_type() . '_item_type_' . $this->get_type(),
-				str_replace('-', '_', $this->get_builder_type()) . '_item_type_' . $this->get_type() . '_data',
-				$builder_data = fw_ext('shortcodes')->get_builder_data()
-			);
+			$builder_data = fw_ext('shortcodes')->get_builder_data();
 
 			foreach ($builder_data as $tag => $item_data) {
 				if (!empty($item_data['options'])) {
@@ -45,7 +41,73 @@ class Page_Builder_Simple_Item extends Page_Builder_Item
 				}
 			}
 
-			unset($builder_data);
+			/**
+			 * Dedupe repeated option subtrees before localizing.
+			 *
+			 * Every element's options embed the same Animations tab. With the Animation
+			 * Engine active that tab is ~500KB, and localizing a verbatim copy for each of
+			 * the 80+ elements produced a ~37MB inline script — big enough to exhaust PHP
+			 * memory while WP 7's inline-script printer (WP_HTML_Tag_Processor) duplicates
+			 * the document, which fatals the whole edit screen mid-footer (and with it the
+			 * section-like factory, so saved pages showed "Cannot detect Item type").
+			 *
+			 * Any big top-level option subtree that repeats verbatim across elements is
+			 * stored ONCE in a shared dictionary (keyed by content hash) and referenced
+			 * from the per-element data; itemData() in scripts.js re-inflates the
+			 * reference. An element with a customised (non-identical) tab keeps its own
+			 * inline copy, so nothing changes semantically.
+			 */
+			$shared_subtrees = array();
+			{
+				$hash_counts = array();
+				$hashed      = array();
+
+				foreach ($builder_data as $tag => $item_data) {
+					if (empty($item_data['options']) || !is_array($item_data['options'])) {
+						continue;
+					}
+					foreach ($item_data['options'] as $idx => $opt) {
+						if (!is_array($opt)) {
+							continue;
+						}
+						$s = serialize($opt);
+						if (strlen($s) < 65536) {
+							continue; // only big subtrees are worth deduping
+						}
+						$hash                 = md5($s);
+						$hash_counts[$hash]   = isset($hash_counts[$hash]) ? $hash_counts[$hash] + 1 : 1;
+						$hashed[$tag][$idx]   = $hash;
+					}
+				}
+
+				foreach ($hashed as $tag => $idxs) {
+					foreach ($idxs as $idx => $hash) {
+						if ($hash_counts[$hash] < 2) {
+							continue; // unique to one element — keep it inline
+						}
+						if (!isset($shared_subtrees[$hash])) {
+							$shared_subtrees[$hash] = $builder_data[$tag]['options'][$idx];
+						}
+						$builder_data[$tag]['options'][$idx] = array('__fw_shared_option__' => $hash);
+					}
+				}
+
+				unset($hash_counts, $hashed);
+			}
+
+			wp_localize_script(
+				$this->get_builder_type() . '_item_type_' . $this->get_type(),
+				str_replace('-', '_', $this->get_builder_type()) . '_item_type_' . $this->get_type() . '_data',
+				$builder_data
+			);
+
+			wp_localize_script(
+				$this->get_builder_type() . '_item_type_' . $this->get_type(),
+				str_replace('-', '_', $this->get_builder_type()) . '_item_type_' . $this->get_type() . '_shared_options',
+				array('subtrees' => $shared_subtrees)
+			);
+
+			unset($builder_data, $shared_subtrees);
 		}
 
 		do_action('fw:ext:page-builder:item-type:simple:enqueue_static');

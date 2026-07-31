@@ -75,16 +75,16 @@
    The fw-col-sm-* gutter (frontend-grid.css) is the wide live-site gutter, which
    reads as an oversized gap. Replace it with the SAME small even spacing the
    Flexbox uses: zero the row's negative margin, then 5px padding on the row AND
-   5px on each column → the gap BETWEEN columns and from the section EDGES are both
-   ~10px. Strictly EDITOR-ONLY (scoped to .fw-option-type-builder); the live grid
-   (frontend-grid.css) is untouched. Columns are border-box, so widths stay correct. */
+   5px on each column, on ALL FOUR sides → the gap BETWEEN columns (horizontal AND
+   vertical, so WRAPPED rows get a gap too — matching the live grid's now-symmetric
+   vertical gutter) and from the section EDGES are all ~10px. Strictly EDITOR-ONLY
+   (scoped to .fw-option-type-builder); the live grid (frontend-grid.css) is
+   untouched. Columns are border-box, so widths stay correct. */
 .fw-option-type-builder .builder-items.fw-pb-flex-row {
 	margin-left: 0;
 	margin-right: 0;
-	padding-left: 5px;  /* edge inset → 5px row + 5px col = 10px, equal to the gap */
-	padding-right: 5px;
+	padding: 5px;  /* edge inset → 5px row + 5px col = 10px, equal to the gap */
 }
 .fw-option-type-builder .builder-items.fw-pb-flex-row > .builder-item.fw-pb-flex-col {
-	padding-left: 5px;
-	padding-right: 5px;
+	padding: 5px;
 }
