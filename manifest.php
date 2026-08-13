@@ -10,7 +10,7 @@ $manifest['description'] = __(
     'fw'
 );
 
-$manifest['version']     = '1.6.74';
+$manifest['version']     = '1.6.75';
 $manifest['display']     = true;
 $manifest['standalone']  = true;
 
@@ -248,7 +248,7 @@ $manifest['requirements'] = array(
  *         a `_fw_section_like_types` localized initial-type list.
  *
  * 1.6.4 - New "Sort Sections" dropdown in the page-builder header (left of the
- *         Templates button). Lists every root section in a qtip2 dropdown with
+ *         Templates button). Lists every root section in a tooltip dropdown with
  *         a drag handle, collapse toggle, and click-to-scroll-to-section.
  *         Drag-reorder inside the dropdown calls the same Backbone collection
  *         remove/add (silent) + `builder:change` trigger that canvas drag uses,

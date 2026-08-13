@@ -38,7 +38,7 @@
 
 			inst.tooltipApi = inst.$el.container
 				.find('.section-sorter-btn')
-				.qtip({
+				.fwTooltip({
 					show: 'click',
 					hide: 'unfocus',
 					position: {
@@ -58,7 +58,7 @@
 						}
 					},
 					style: {
-						classes: 'qtip-fw qtip-fw-builder qtip-fw-section-sorter',
+						classes: 'fw-tooltip-default fw-tooltip-builder fw-tooltip-section-sorter',
 						tip: {
 							width: 12,
 							height: 5
@@ -69,7 +69,7 @@
 						text: inst.$el.tooltipContent
 					}
 				})
-				.qtip('api');
+				.fwTooltip('api');
 
 			bindRowEvents();
 			initSortable();

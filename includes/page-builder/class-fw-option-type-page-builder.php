@@ -211,7 +211,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		wp_enqueue_script(
 			'fw-option-type-' . $this->get_type() . '-section-sorter',
 			$static_uri . '/js/section-sorter.js',
-			array('jquery', 'jquery-ui-sortable', 'fw-events', 'underscore', 'qtip', 'fw-section-like-factory'),
+			array('jquery', 'jquery-ui-sortable', 'fw-events', 'underscore', 'fw-tooltip', 'fw-section-like-factory'),
 			$version,
 			true
 		);
