@@ -91,3 +91,35 @@ body.rtl .pb-item-type-simple .controls {
    image blocks) — the 16×16 item icon is a direct `> img` and is unaffected. */
 .pb-item-type-simple > span img { max-width: 100%; height: auto; }
 .pb-item-type-simple > span figure { max-width: 100%; margin: 0; }
+
+/* The item title is whatever the shortcode's `title_template` produced. For
+   rich-text elements that is the EDITOR'S OWN HTML — Text Block's template is
+   `<div>{{= o.text }}</div>` and a wp-editor value is stored wrapped in <p> —
+   so wp-admin's `p { margin: 1em 0 }` was adding ~26px of dead space and making
+   the Text Block item noticeably taller than every other element in the canvas.
+   Trim the leading/trailing margins and keep a small gap between blocks. */
+.pb-item-type-simple > span p,
+.pb-item-type-simple > span h1,
+.pb-item-type-simple > span h2,
+.pb-item-type-simple > span h3,
+.pb-item-type-simple > span h4,
+.pb-item-type-simple > span h5,
+.pb-item-type-simple > span h6,
+.pb-item-type-simple > span ul,
+.pb-item-type-simple > span ol,
+.pb-item-type-simple > span blockquote {
+	margin-top: 0;
+	margin-bottom: 0.5em;
+}
+.pb-item-type-simple > span p:last-child,
+.pb-item-type-simple > span h1:last-child,
+.pb-item-type-simple > span h2:last-child,
+.pb-item-type-simple > span h3:last-child,
+.pb-item-type-simple > span h4:last-child,
+.pb-item-type-simple > span h5:last-child,
+.pb-item-type-simple > span h6:last-child,
+.pb-item-type-simple > span ul:last-child,
+.pb-item-type-simple > span ol:last-child,
+.pb-item-type-simple > span blockquote:last-child {
+	margin-bottom: 0;
+}
