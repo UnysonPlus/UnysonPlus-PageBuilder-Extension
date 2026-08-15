@@ -96,7 +96,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			wp_enqueue_script(
 				'fw-option-type-' . $this->get_type() . '-editor-integration',
 				$static_uri . '/js/editor_integration.js',
-				array('jquery', 'fw-events'),
+				array('jquery', 'fw-events', 'underscore'),
 				$version,
 				true
 			);
@@ -105,7 +105,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 				'fw-option-type-' . $this->get_type() . '-visual-elements',
 				$static_uri . '/js/visual-elements.js',
 				array(
-					'jquery', 'fw-events',
+					'jquery', 'fw-events', 'underscore',
 					'fw-option-type-' . $this->get_type() . '-editor-integration'
 				),
 				$version,
@@ -305,7 +305,9 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			wp_enqueue_script(
 				$script_handle = 'fw-page-builder-modal-save-all',
 				$static_uri .'/js/modal-save-all.js',
-				array('fw'),
+				// 'underscore' declared explicitly — see note on 'fw' in
+				// framework/core/components/backend.php: 'fw' no longer carries it.
+				array('fw', 'underscore'),
 				fw()->manifest->get_version(),
 				true
 			);

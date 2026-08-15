@@ -104,7 +104,7 @@
 			// template convention.
 			var typeLabel = '';
 			if (model.view && model.view.$el) {
-				typeLabel = $.trim(model.view.$el.find('.column-title').first().text());
+				typeLabel = ( model.view.$el.find('.column-title').first().text() || '' ).trim();
 			}
 			if (!typeLabel) {
 				typeLabel = l10n.sectionLabel || 'Section';
