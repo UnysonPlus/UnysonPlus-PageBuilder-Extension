@@ -96,7 +96,15 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			wp_enqueue_script(
 				'fw-option-type-' . $this->get_type() . '-editor-integration',
 				$static_uri . '/js/editor_integration.js',
-				array('jquery', 'fw-events', 'underscore'),
+				/**
+				 * Free of Backbone and Underscore as of 1.6.79: the event hub is
+				 * Object.assign({}, fw.Events) instead of Backbone.Events, and the
+				 * _.bind() callbacks are arrow functions. It never declared
+				 * 'backbone' despite using Backbone.Events — it worked only
+				 * because other page-builder scripts happened to load it. 'fw' is
+				 * declared because fw.Events lives there.
+				 */
+				array('jquery', 'fw', 'fw-events'),
 				$version,
 				true
 			);

@@ -17,7 +17,7 @@
 			$wpContentWrap: $( '#wp-content-wrap' ),
 			$wpTemplatesSelect: $( 'select[name="page_template"]:first' ),
 		},
-		events: _.extend( {}, Backbone.Events ),
+		events: Object.assign( {}, fw.Events ),
 		editorId: 'content',
 		getBuilderInputValue: function () {
 			return this.elements.$builderInput.val()
@@ -190,22 +190,22 @@
 			/**
 			 * On builder show, make sure that a template that supports builder is selected in wp templates select
 			 */
-			this.events.on( 'show', _.bind( function () {
+			this.events.on( 'show', () => {
 				this.elements.$wpTemplatesSelect.find( '> option' ).each( function () {
 					if ( $.inArray( $( this ).attr( 'value' ), data.builderTemplates ) !== - 1 ) {
 						$( this ).prop( 'selected', true );
 						return false
 					}
 				} )
-			}, this ) );
+			} );
 
-			var onChange = _.bind( function () {
+			var onChange = () => {
 				if ( $.inArray( this.elements.$wpTemplatesSelect.val(), data.builderTemplates ) === - 1 ) {
 					this.hideBuilder()
 				} else {
 					this.showBuilder()
 				}
-			}, this );
+			};
 
 			this.elements.$wpTemplatesSelect.on( 'change', onChange );
 
@@ -246,7 +246,7 @@
 					}
 				};
 
-			this.events.on( 'show', _.bind( function () {
+			this.events.on( 'show', () => {
 				// store post content and replace it with builder content
 				postContentBeforeBuilderActivate = getEditor().getContent();
 				builderToEditorContent();
@@ -254,15 +254,15 @@
 				this.elements.$option.on( 'fw-builder:input:change' + eventsNamespace, function () {
 					builderToEditorContent();
 				} )
-			}, this ) );
+			} );
 
-			this.events.on( 'hide', _.bind( function () {
+			this.events.on( 'hide', () => {
 				// restore post content
 				getEditor().setContent( postContentBeforeBuilderActivate );
 				postContentBeforeBuilderActivate = '';
 
 				this.elements.$option.off( eventsNamespace )
-			}, this ) );
+			} );
 		},
 		init: function () {
 			this.elements.$builderBox = this.elements.$option.closest( '.postbox' );
@@ -274,13 +274,13 @@
 			}
 
 			// fixes on firs show or hide
-			this.events.once( 'show', _.bind( function () {
+			this.events.once( 'show', () => {
 				this.fixOnFirstShowOrHide( true );
-			}, this ) );
+			} );
 
-			this.events.once( 'hide', _.bind( function () {
+			this.events.once( 'hide', () => {
 				this.fixOnFirstShowOrHide( false );
-			}, this ) );
+			} );
 
 			/**
 			 * public events
