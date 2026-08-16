@@ -3,7 +3,7 @@
 		btnClass: 'fw-pb-save-all',
 		modalChain: [],
 		resetChain: function (modal) {
-			_.each(this.modalChain, this.removeButton, this);
+			this.modalChain.forEach(this.removeButton, this);
 
 			this.modalChain = [modal];
 
@@ -75,11 +75,11 @@
 				$('<button type="button" class="button media-button button-large"></button>')
 					.addClass(this.btnClass)
 					.text($toolbar.find('.button-primary:first').text() + l10n.btn_text_suffix)
-					.on('click', _.bind(function (e) {
+					.on('click', (e) => {
 						e.preventDefault();
 						this.detachEvents();
 						this.saveChain();
-					}, this))
+					})
 			);
 		},
 		removeButton: function (modal) {
@@ -87,13 +87,13 @@
 		}
 	};
 
-	inst.modalOpenListener = _.bind(function (data) {
+	inst.modalOpenListener = function (data) {
 		inst.pushChain(data.modal);
-	}, inst);
+	};
 
-	inst.modalCloseListener = _.bind(function (data) {
+	inst.modalCloseListener = function (data) {
 		inst.popChain();
-	}, inst);
+	};
 
 	fwEvents.on(
 		['simple', 'column', 'section']

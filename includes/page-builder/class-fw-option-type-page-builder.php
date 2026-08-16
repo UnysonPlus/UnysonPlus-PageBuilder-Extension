@@ -113,8 +113,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 				'fw-option-type-' . $this->get_type() . '-visual-elements',
 				$static_uri . '/js/visual-elements.js',
 				array(
-					'jquery', 'fw-events', 'underscore',
-					'fw-option-type-' . $this->get_type() . '-editor-integration'
+					'jquery', 'fw-events', 'fw-option-type-' . $this->get_type() . '-editor-integration'
 				),
 				$version,
 				true
@@ -196,7 +195,8 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		wp_enqueue_script(
 			'fw-section-like-factory',
 			$static_uri . '/js/section-like-factory.js',
-			array( 'jquery', 'fw-events', 'underscore', 'backbone' ),
+			// 'backbone' dropped: section-like-factory.js contains no Backbone call.
+			array( 'jquery', 'fw-events' ),
 			$version,
 			true
 		);
@@ -219,7 +219,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		wp_enqueue_script(
 			'fw-option-type-' . $this->get_type() . '-section-sorter',
 			$static_uri . '/js/section-sorter.js',
-			array('jquery', 'jquery-ui-sortable', 'fw-events', 'underscore', 'fw-tooltip', 'fw-section-like-factory'),
+			array('jquery', 'jquery-ui-sortable', 'fw-events', 'fw-tooltip', 'fw-section-like-factory'),
 			$version,
 			true
 		);
@@ -253,7 +253,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		wp_enqueue_script(
 			'fw-option-type-' . $this->get_type() . '-insert-section',
 			$static_uri . '/js/insert-section.js',
-			array( 'jquery', 'fw-events', 'underscore', 'fw-section-like-factory' ),
+			array( 'jquery', 'fw-events', 'fw-section-like-factory' ),
 			$version,
 			true
 		);
@@ -289,7 +289,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		wp_enqueue_script(
 			'fw-option-type-' . $this->get_type() . '-device-preview',
 			$static_uri . '/js/device-preview.js',
-			array( 'jquery', 'fw-events', 'underscore' ),
+			array( 'jquery', 'fw-events' ),
 			$version,
 			true
 		);
@@ -315,7 +315,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 				$static_uri .'/js/modal-save-all.js',
 				// 'underscore' declared explicitly — see note on 'fw' in
 				// framework/core/components/backend.php: 'fw' no longer carries it.
-				array('fw', 'underscore'),
+				array('fw'),
 				fw()->manifest->get_version(),
 				true
 			);

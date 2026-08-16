@@ -27,7 +27,7 @@ class Page_Builder_Simple_Item extends Page_Builder_Item
 		wp_enqueue_script(
 			$this->get_builder_type() . '_item_type_' . $this->get_type(),
 			$static_uri . '/js/scripts.js',
-			array('fw', 'fw-events', 'underscore'),
+			array('fw', 'fw-events'),
 			$version,
 			true
 		);

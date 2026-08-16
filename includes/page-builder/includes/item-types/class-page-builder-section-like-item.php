@@ -130,7 +130,7 @@ abstract class Page_Builder_Section_Like_Item extends Page_Builder_Item {
 			wp_enqueue_script(
 				$handle,
 				$js_path,
-				array( 'fw-events', 'underscore', 'fw-section-like-factory' ),
+				array( 'fw-events', 'fw-section-like-factory' ),
 				$asset_ver( $js_rel ),
 				true
 			);

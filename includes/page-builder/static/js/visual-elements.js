@@ -37,7 +37,7 @@
 	/** The deepest registered item whose element contains `target` (or null). */
 	function itemAt(target) {
 		var hit = null;
-		_.each(registry, function (entry) {
+		registry.forEach(function (entry) {
 			var el = entry.model.view && entry.model.view.el;
 			if (el && el.contains(target)) {
 				if (!hit || hit.el.contains(el)) { hit = { el: el, entry: entry }; }
@@ -66,7 +66,7 @@
 			var nid = genUid();
 			if (n.atts && typeof n.atts === 'object') { n.atts.unique_id = nid; }
 			if (Object.prototype.hasOwnProperty.call(n, 'unique_id')) { n.unique_id = nid; }
-			if (_.isArray(n._items)) { _.each(n._items, regen); }
+			if (Array.isArray(n._items)) { n._items.forEach(regen); }
 		})(clone);
 		return clone;
 	}
@@ -84,9 +84,9 @@
 		var map = {};
 		(function visit(node) {
 			if (!node) { return; }
-			if (_.isArray(node)) { _.each(node, visit); return; }
+			if (Array.isArray(node)) { node.forEach(visit); return; }
 			if (typeof node !== 'object') { return; }
-			_.each(_.keys(node), function(id) {
+			Object.keys(node).forEach(function(id) {
 				var def = node[id];
 				if (!def || typeof def !== 'object') { return; }
 				if (def.type === 'multi-picker' || def.picker) { map[id] = def.type || 'multi-picker'; return; }
@@ -133,7 +133,7 @@
 		var types = optionLeafTypes(itemOptions(model));
 		var atts = model.get('atts') || {};
 		var settings = {};
-		_.each(_.keys(atts), function(k) {
+		Object.keys(atts).forEach(function(k) {
 			if (k === 'unique_id') { return; }
 			if (CONTENT_TYPES[types[k]]) { return; }
 			settings[k] = atts[k];
@@ -154,9 +154,9 @@
 			return;
 		}
 		var types = optionLeafTypes(itemOptions(model));
-		var atts = _.clone(model.get('atts') || {});
+		var atts = fw.clone(model.get('atts') || {});
 		var applied = 0;
-		_.each(_.keys(clip.settings), function(k) {
+		Object.keys(clip.settings).forEach(function(k) {
 			if (!(k in types)) { return; }
 			if (CONTENT_TYPES[types[k]]) { return; }
 			atts[k] = clip.settings[k];
@@ -168,8 +168,8 @@
 		}
 		model.set('atts', atts);
 		// Keep a cached options modal in sync (built once, reused).
-		if (model.view && model.view.modal && _.isFunction(model.view.modal.set)) {
-			model.view.modal.set('values', _.clone(atts), { silent: true });
+		if (model.view && model.view.modal && typeof model.view.modal.set === 'function') {
+			model.view.modal.set('values', fw.clone(atts), { silent: true });
 		}
 		toast(l10n('settingsPasted', 'Settings pasted'));
 	}
@@ -217,20 +217,20 @@
 	function getResponsiveHide(model) {
 		var atts = model.get('atts') || {};
 		var rh = atts.responsive_hide;
-		return (rh && !_.isArray(rh) && _.isObject(rh)) ? rh : {};
+		return (rh && !Array.isArray(rh) && fw.isObject(rh)) ? rh : {};
 	}
 
 	function hiddenOnCurrent(model) { return !!getResponsiveHide(model)[currentHideClass()]; }
 
 	function toggleCurrent(model) {
 		var cls = currentHideClass();
-		var atts = _.clone(model.get('atts') || {});
-		var rh = _.clone(getResponsiveHide(model));
+		var atts = fw.clone(model.get('atts') || {});
+		var rh = fw.clone(getResponsiveHide(model));
 		if (rh[cls]) { delete rh[cls]; } else { rh[cls] = true; }
 		atts.responsive_hide = rh;
 		model.set('atts', atts);
-		if (model.view && model.view.modal && _.isFunction(model.view.modal.set)) {
-			model.view.modal.set('values', _.clone(atts), { silent: true });
+		if (model.view && model.view.modal && typeof model.view.modal.set === 'function') {
+			model.view.modal.set('values', fw.clone(atts), { silent: true });
 		}
 		refreshDim(model);
 	}
@@ -245,7 +245,7 @@
 	var registry = [];
 
 	function refreshAllDims() {
-		registry = _.filter(registry, function(entry) {
+		registry = registry.filter(function(entry) {
 			if (!entry.model.view || !entry.model.view.$el || !entry.model.view.$el.closest('body').length) {
 				return false;
 			}
@@ -297,7 +297,7 @@
 		if ($del.length) { rows.push({ t: l10n('remove', 'Delete'), danger: 1, fn: function() { $del.trigger('click'); } }); }
 
 		$menu = $('<div class="fw-pb-ctxmenu"></div>');
-		_.each(rows, function(r) {
+		rows.forEach(function(r) {
 			if (r.sep) { $menu.append('<div class="fw-pb-ctxmenu__sep"></div>'); return; }
 			var $b = $('<button type="button" class="fw-pb-ctxmenu__item"></button>').text(r.t);
 			if (r.danger) { $b.addClass('is-danger'); }
@@ -371,7 +371,7 @@
 	$(window).resize(calculateSize);
 
 	fwEvents.on('fw-builder:page-builder:items-loaded', function() {
-		setTimeout(_.partial(calculateSize), 250);
+		setTimeout(calculateSize, 250);
 	});
 
 	// Device switch → re-evaluate every item's dimming for the new breakpoint.

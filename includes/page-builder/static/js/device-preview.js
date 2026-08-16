@@ -82,7 +82,7 @@
 			fireResize();
 		}
 
-		_.defer(function () {
+		setTimeout(function () {
 			data.$headerTools.removeClass('fw-hidden').append($container);
 
 			$container.on('click', '.fw-device-btn', function (ev) {
@@ -91,6 +91,6 @@
 			});
 
 			apply(getSaved());
-		});
+		}, 0);
 	});
 })(jQuery, fwEvents, _, typeof _fw_page_builder_device_preview !== 'undefined' ? _fw_page_builder_device_preview : { l10n: {} });

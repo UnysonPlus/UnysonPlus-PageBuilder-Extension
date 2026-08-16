@@ -311,7 +311,7 @@
 			$( document ).off( 'keydown.upbIs' );
 		}
 
-		_.defer( function () {
+		setTimeout( function () {
 			var $link = $(
 				'<div class="insert-section-container fw-pull-right">' +
 					'<a class="insert-section-btn" href="#" onclick="return false;">' +
@@ -325,7 +325,7 @@
 				ev.preventDefault();
 				open();
 			} );
-		} );
+		} , 0);
 	} );
 
 } )( jQuery, fwEvents, _, typeof _fw_page_builder_insert_section !== 'undefined' ? _fw_page_builder_insert_section : {} );

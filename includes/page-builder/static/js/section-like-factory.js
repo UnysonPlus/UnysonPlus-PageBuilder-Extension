@@ -59,7 +59,7 @@
 				builder: builder
 			};
 
-			fwEvents.trigger(name, eventData ? _.extend(eventData, data) : data);
+			fwEvents.trigger(name, eventData ? Object.assign(eventData, data) : data);
 		};
 
 		var getEventName = function (itemModel, event) {
@@ -75,8 +75,8 @@
 				this.initOptions = initOptions;
 				this.initOptions.templateData = this.initOptions.templateData || {};
 			},
-			template: _.template(
-				'<div class="pb-item-type-column pb-item custom-section">' +
+			template: fw.template(
+								'<div class="pb-item-type-column pb-item custom-section">' +
 					'<div class="panel fw-row">' +
 						'<div class="panel-left fw-col-xs-6">' +
 							'<div class="column-title"><%= title %></div>' +
@@ -101,24 +101,23 @@
 
 				if (titleTemplate && this.model.get('atts')) {
 					try {
-						title = _.template(
+						title = fw.template(
 							jQuery.trim(titleTemplate),
-							undefined,
-							{
+								{
 								evaluate: /\{\{([\s\S]+?)\}\}/g,
 								interpolate: /\{\{=([\s\S]+?)\}\}/g,
 								escape: /\{\{-([\s\S]+?)\}\}/g
 							}
-						)({
+							)({
 							o: this.model.get('atts'),
 							title: title
 						});
 					} catch (e) {
 						console.error('section-like title_template error', e.message);
-						title = _.template('<%= title %>')({title: title});
+						title = fw.template('<%= title %>')({title: title});
 					}
 				} else {
-					title = _.template('<%= title %>')({title: title});
+					title = fw.template('<%= title %>')({title: title});
 				}
 
 				this.defaultRender(jQuery.extend({}, this.initOptions.templateData, {title: title}));
@@ -137,7 +136,7 @@
 					var atts = this.model.get('atts') || {};
 					var $items = this.$('.builder-items').first();
 					if ($items.length) {
-						_.each(['lg', 'md', 'sm'], function (bp) {
+						['lg', 'md', 'sm'].forEach(function (bp) {
 							var v = atts['cols_' + bp];
 							if (v) { $items.css('--mc-' + bp, v); }
 						});
@@ -163,7 +162,7 @@
 			lazyInitModal: function () {
 				this.lazyInitModal = function () {};
 
-				if (_.isEmpty(this.initOptions.modalOptions)) {
+				if (fw.isEmpty(this.initOptions.modalOptions)) {
 					return;
 				}
 

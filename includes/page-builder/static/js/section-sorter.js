@@ -31,7 +31,7 @@
 			tooltipApi: null
 		};
 
-		_.defer(function () {
+		setTimeout(function () {
 			inst.$el.headerTools
 				.removeClass('fw-hidden')
 				.append(inst.$el.container);
@@ -74,7 +74,7 @@
 			bindRowEvents();
 			initSortable();
 			bindCollectionEvents();
-		});
+		}, 0);
 
 		function escapeHtml(str) {
 			return String(str == null ? '' : str)

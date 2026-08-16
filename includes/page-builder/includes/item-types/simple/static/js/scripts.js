@@ -18,7 +18,7 @@
 
 				fwEvents.trigger(
 					event,
-					eventData ? _.extend(eventData, data) : data
+					eventData ? Object.assign(eventData, data) : data
 				);
 			};
 
@@ -30,8 +30,8 @@
 				this.initOptions.templateData = this.initOptions.templateData || {};
 				this.initOptions.modalOptions = this.initOptions.modalOptions || {};
 			},
-			template: _.template(
-				'<div class="pb-item-type-simple <% if (hasOptions) { %>has-options <% } %>pb-item fw-row">' +
+			template: fw.template(
+								'<div class="pb-item-type-simple <% if (hasOptions) { %>has-options <% } %>pb-item fw-row">' +
 					'<% if (icon) { %>' +
 						'<% if (typeof FwBuilderComponents.ItemView.iconToHtml == "undefined") { %>' +
 							'<img src="<%- icon %>" alt="Icon" />' +
@@ -59,9 +59,8 @@
 
 					if (titleTemplate && this.model.get('atts')) {
 						try {
-							title = _.template(
+							title = fw.template(
 								jQuery.trim(titleTemplate),
-								undefined,
 								{
 									evaluate: /\{\{([\s\S]+?)\}\}/g,
 									interpolate: /\{\{=([\s\S]+?)\}\}/g,
@@ -74,10 +73,10 @@
 						} catch (e) {
 							console.error('$cfg["page_builder"]["title_template"]', e.message);
 
-							title = _.template('<%= title %>')({title: title});
+							title = fw.template('<%= title %>')({title: title});
 						}
 					} else {
-						title = _.template('<%= title %>')({title: title});
+						title = fw.template('<%= title %>')({title: title});
 					}
 				}
 
@@ -134,7 +133,7 @@
 			lazyInitModal: function() {
 				this.lazyInitModal = function(){}; // must be called only once
 
-				if (_.isEmpty(this.initOptions.modalOptions)) {
+				if (fw.isEmpty(this.initOptions.modalOptions)) {
 					return;
 				}
 
@@ -326,7 +325,7 @@
 			&&
 			typeof page_builder_item_type_simple_shared_options !== 'undefined'
 		) {
-			_.each(data.options, function (opt, idx) {
+			data.options.forEach(function (opt, idx) {
 				if (opt && opt['__fw_shared_option__']) {
 					data.options[idx] =
 						page_builder_item_type_simple_shared_options.subtrees[opt['__fw_shared_option__']]
