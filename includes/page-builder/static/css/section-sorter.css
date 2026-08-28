@@ -71,7 +71,7 @@
 }
 
 .section-sorter-handle:hover {
-	color: #2271b1;
+	color: var(--fw-accent, #2271b1);
 }
 
 .section-sorter-handle:active {
@@ -99,7 +99,7 @@
 }
 
 .section-sorter-label:hover {
-	color: #2271b1;
+	color: var(--fw-accent, #2271b1);
 }
 
 .section-sorter-collapse {
@@ -114,7 +114,7 @@
 }
 
 .section-sorter-collapse:hover {
-	color: #2271b1;
+	color: var(--fw-accent, #2271b1);
 }
 
 .section-sorter-placeholder {
@@ -133,6 +133,6 @@
 
 .section-sorter-highlight {
 	animation: section-sorter-flash 1.5s ease-out;
-	outline: 2px solid #2271b1;
+	outline: 2px solid var(--fw-accent, #2271b1);
 	outline-offset: -2px;
 }

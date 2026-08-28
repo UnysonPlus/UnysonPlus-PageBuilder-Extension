@@ -41,12 +41,12 @@
 .fw-device-preview .fw-device-btn:hover,
 .fw-device-preview .fw-device-btn:focus {
 	background: #f0f0f1;
-	color: #2271b1;
+	color: var(--fw-accent, #2271b1);
 	outline: none;
 }
 
 .fw-device-preview .fw-device-btn.active {
-	background: #2271b1;
+	background: var(--fw-accent, #2271b1);
 	color: #fff;
 }
 
