@@ -29,6 +29,7 @@ final class FW_Section_Like_Registry {
 	}
 
 	public static function get_types() {
+		/** Filters the list of page-builder item types treated as section-like, letting extensions register additional section container types. */
 		return apply_filters( 'fw_section_like_types', self::$types );
 	}
 

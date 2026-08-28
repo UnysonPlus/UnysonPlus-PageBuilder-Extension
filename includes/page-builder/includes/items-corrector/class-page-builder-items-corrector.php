@@ -90,6 +90,7 @@ class _Page_Builder_Items_Corrector
 		$this->correct_sections();
 		$this->correct_root_items();
 
+		/** Filters the page-builder items after structural correction, passing the corrector and the original items. */
 		return apply_filters('fw_ext_page-builder_items_correction_complete', $this->items,
 			$this,
 			$items // @since 1.3.9
@@ -195,6 +196,7 @@ class _Page_Builder_Items_Corrector
 
 						do {
 							if ( $row_container->add_column(
+								/** Filters a column's width as the items corrector packs it into a row, given the column item. */
 								apply_filters('fw:ext:page-builder:item-corrector:column-width', $section[ $i ]['width'], $section[ $i ])
 							) ) {
 								$columns[] = $section[ $i ];

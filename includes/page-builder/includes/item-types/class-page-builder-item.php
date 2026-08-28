@@ -79,6 +79,8 @@ abstract class Page_Builder_Item extends FW_Option_Type_Builder_Item
 		}
 		
 		/**
+		 * Filters the collection of page-builder item thumbnails before they are rendered in the builder.
+		 *
 		 * @since 1.6.8
 		 */
 		$thumbs = apply_filters( 'fw_page_builder_thumbs_before_display', $thumbs );

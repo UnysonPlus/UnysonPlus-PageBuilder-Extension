@@ -110,6 +110,7 @@ class Page_Builder_Simple_Item extends Page_Builder_Item
 			unset($builder_data, $shared_subtrees);
 		}
 
+		/** Fires when the simple builder item type enqueues its static assets, so extensions can enqueue alongside it. */
 		do_action('fw:ext:page-builder:item-type:simple:enqueue_static');
 	}
 

@@ -11,6 +11,7 @@ $options = array(
                                 'label'   => __( 'Activate for', 'fw' ),
                                 'type'    => 'checkboxes',
                                 'choices' => fw_ext_page_builder_get_supported_post_types(),
+                                /** Filters the default post types the page builder is activated for (default page). */
                                 'value'   => apply_filters(
                                         'fw_ext_page_builder_settings_options_post_types_default_value',
                                         array( 'page' => true )
@@ -31,6 +32,7 @@ $options = array(
                                 'text'  => __( 'Disable Styling Presets (bare, structure-only page builder)', 'fw' ),
                                 'desc'  => __( 'Designed for developers who want a pure page builder experience and prefer styling elements manually using custom CSS classes. By default shortcodes get a <strong>Styling</strong> tab and the Button / Border / Table <strong>preset pickers</strong>, the <strong>Component Presets</strong> editor appears under the Unyson+ menu, and the generated <code>presets.css</code> (Color / Typography / Spacing / Button / Border / Table utility classes) is enqueued. <br><br><strong>Check this for a bare, structure-only page builder</strong> — for developers who style everything with their own CSS via each element\'s <strong>CSS ID / Class</strong> (Advanced tab). The Styling tab, preset pickers and Component Presets page disappear, and <code>presets.css</code> stops loading. <br><br>Note: this unstyles any content that relied on preset classes, and the <strong>Unyson+ theme depends on these tokens</strong> — so only enable it on a non-Unyson theme with your own CSS. The Animation tab is unaffected (it only loads when used).', 'fw' ),
                         ),
+                        /** Filters extra page-builder settings options merged into the settings form. */
                         apply_filters('fw_ext_page_builder_settings_options', array())
                 )
         )

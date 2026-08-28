@@ -135,6 +135,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			}
 
 			{
+				/** Filters the list of PHP page templates the page builder recognizes as builder templates. */
 				$builder_templates = apply_filters('fw_ext_page_builder_templates', array(
 					// 'template-file.php', 'dir/template-file.php' // these needs to match http://bit.ly/1LAMfjN
 				));
@@ -306,6 +307,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			)
 		);
 
+		/** Filters whether the builder's modal save-all script is enqueued (defaults on for version 2.6.14 and later). */
 		if ( apply_filters(
 			'fw:ext:page-builder:modal-save-all',
 			version_compare(fw()->manifest->get_version(), '2.6.14', '>=')
@@ -334,6 +336,7 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		if ($option['editor_integration'] === true) {
 			if (isset($data['value']['builder_active'])
 				? $data['value']['builder_active']
+				/** Filters whether the page builder starts active by default when a value has no stored builder_active flag. */
 				: apply_filters('fw_page_builder_set_as_default', false)
 			) {
 				$option['attr']['data-builder-active'] = '~';
@@ -578,6 +581,8 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		 */
 		if (
 			/**
+			 * Filters whether the builder JSON needs grid auto-correction before being converted to shortcodes.
+			 *
 			 * @since 1.6.14
 			 */
 			apply_filters(
@@ -590,6 +595,8 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			$corrected_items_value = $corrector->correct($items_value);
 
 			/**
+			 * Filters the corrected builder items structure right after the grid corrector runs.
+			 *
 			 * @since 1.6.14
 			 */
 			$corrected_items_value = apply_filters(
@@ -599,6 +606,8 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			);
 
 			/**
+			 * Filters the corrected builder items structure as a final pass after all correction is done.
+			 *
 			 * @since 1.6.14
 			 */
 			$corrected_items_value = apply_filters(

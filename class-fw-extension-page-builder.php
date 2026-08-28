@@ -233,6 +233,8 @@ class FW_Extension_Page_Builder extends FW_Extension {
 		$option_type = fw()->backend->option_type('page-builder');
 
 		/**
+		 * Filters whether to regenerate the post's HTML content from the builder JSON (for revisions, SEO, and search).
+		 *
 		 * Just to create a revision if content was changed
 		 * Also for SEO admin inspector and WP Search to work
 		 * Note: Treat " because it create problems with slashes (" -> \") and duplicate revisions
@@ -294,12 +296,14 @@ class FW_Extension_Page_Builder extends FW_Extension {
 	 */
 	public function _theme_filter_prevent_autop( $content ) {
 		if ( $this->is_builder_post() ) {
+			/** Filters whether to wrap page-builder content in a protective div (return false to skip wrapping). */
 			if (!apply_filters(
 				'fw_ext_page_builder_output_content_wrapper', true
 			)) {
 				return $content;
 			}
 
+			/** Filters the CSS class of the wrapper div placed around page-builder content (default 'fw-page-builder-content'). */
 			$wrapper_class = apply_filters( 'fw_ext_page_builder_content_wrapper_class', 'fw-page-builder-content' );
 
 			/**
@@ -396,6 +400,7 @@ class FW_Extension_Page_Builder extends FW_Extension {
 			&&
 			$builder_data['builder_active']
 		) {
+			/** Filters the stored builder data before it is converted to shortcodes for output. */
 			$builder_data = apply_filters(
 				'fw:ext:page-builder:builder-data:before-shortcode-generate',
 				$builder_data

@@ -1,8 +1,11 @@
 <?php if (!defined('FW')) die('Forbidden');
 
 /**
+ * Returns whether the given post was built with the page builder.
+ *
  * Returns whether or not a post was built with the page builder
  */
+/** Returns whether the given post was built with the page builder. */
 function fw_ext_page_builder_is_builder_post($post_id = '') {
         return fw()->extensions->get('page-builder')->is_builder_post($post_id);
 }
@@ -25,6 +28,7 @@ function fw_ext_page_builder_get_supported_post_types() {
                         }
                 }
 
+                /** Filters the list of editor-supporting post types the page builder can be enabled for. */
                 $result = apply_filters('fw_ext_page_builder_supported_post_types', $result);
 
                 FW_Cache::set($cache_key, $result);
@@ -34,6 +38,8 @@ function fw_ext_page_builder_get_supported_post_types() {
 }
 
 /**
+ * Returns the shortcodes generated from a post's page-builder JSON builder value.
+ *
  * @param int|WP_Post $post
  * @return string Shortcodes generated from post meta json builder value
  * @since 1.5.1
