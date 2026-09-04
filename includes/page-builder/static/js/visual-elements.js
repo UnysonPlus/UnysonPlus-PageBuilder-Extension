@@ -383,6 +383,7 @@
 			'fw:page-builder:shortcode:section:controls',
 			'fw:page-builder:shortcode:column:controls',
 			'fw:page-builder:shortcode:innercolumn:controls',
+			'fw:page-builder:shortcode:flexbox:controls',
 			'fw:page-builder:shortcode:contact-form:controls',
 		].join(' '),
 		function(data) { addControls(data); }

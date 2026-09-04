@@ -10,7 +10,7 @@ $manifest['description'] = __(
     'fw'
 );
 
-$manifest['version']     = '1.6.83';
+$manifest['version']     = '1.7.0';
 $manifest['display']     = true;
 $manifest['standalone']  = true;
 
@@ -46,6 +46,23 @@ $manifest['requirements'] = array(
 /**
  * Changelog
  * -----------------------------------------------------------------------------
+ * 1.6.98 - Insert Grid picker moves to TABS and gains the full combination set. The Grid tile's
+ *          picker now mirrors Insert Section — one tab per column count (Equal / Two / Three / Four /
+ *          Five columns) instead of one long scroll — and grows to ~47 layouts: every twelfths split
+ *          and its mirror (incl. 1/12·11/12), symmetric + sidebar three-column layouts, feature/edge
+ *          four- and five-column rows, and the fifths splits (1/5·4/5, 2/5·3/5, 1/5·3/5·1/5, …). Also
+ *          fixed the tile thumbnails for 2/5 · 3/5 · 4/5 (the proportion map only had 1/5, so the
+ *          others drew as a full bar).
+ *
+ * 1.6.95 - Insert Grid picker expanded, and both pickers now caption every tile. The Grid tile's
+ *          picker grows from 7 to ~22 layouts, grouped Equal / Two columns / Three columns / Four
+ *          columns — adding uneven 2-, 3- and 4-column splits in both twelfths (1/4·3/4, 1/6·5/6,
+ *          5/12·7/12, 1/4·1/2·1/4, 1/2·1/6·1/6·1/6, …) and fifths (2/5·3/5, 1/5·3/5·1/5). A fifths
+ *          split can't reduce to a clean twelfths grid span, so those insert as a Flex row with exact
+ *          %% widths (visually identical, correct on canvas and front end) instead of a spanning grid.
+ *          Every tile in BOTH the Insert Grid and Insert Section pickers now shows a fraction-sum
+ *          caption (e.g. "1/3 + 2/3", "1/6 × 6") so near-identical thumbnails are easy to tell apart.
+ *
  * 1.6.60 - New "Insert Section" toolbar feature: a prebuilt column-layout inserter.
  *          An "Insert Section" link is injected into the builder header toolbar
  *          (before Templates) and opens a modal whose TABS are the layout categories

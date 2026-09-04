@@ -43,8 +43,39 @@ class FW_Extension_Page_Builder extends FW_Extension {
 	protected function _init() {
 		add_action( 'fw_option_types_init', array( $this, '_action_option_types_init' ) );
 
+		// Keep the hidden `page-editor` child bound to this extension's active state — it
+		// replaces the WordPress block editor with the classic editing screen so the builder
+		// needs no Classic Editor plugin. Self-heals on every install (the child was added
+		// after the Page Builder was already active, so it missed the activation cascade).
+		add_action( 'admin_init', array( $this, '_ensure_page_editor_active' ) );
+
 		$this->add_filters();
 		$this->add_actions();
+	}
+
+	/**
+	 * Ensure the hidden `page-editor` child is active whenever the Page Builder is. It rides
+	 * with this extension: when the Page Builder is deactivated its children can't load, so the
+	 * block editor returns. Idempotent — only writes when it must, and only if the child exists
+	 * on disk.
+	 *
+	 * @internal
+	 */
+	public function _ensure_page_editor_active() {
+		if ( fw_ext( 'page-editor' ) ) {
+			return; // already active
+		}
+
+		// Present on disk? (get_children() lists only ACTIVE children, so check the file.)
+		if ( ! file_exists( $this->get_path() . '/extensions/page-editor/manifest.php' ) ) {
+			return; // child not shipped (e.g. a core-only build)
+		}
+
+		$active = get_option( 'fw_active_extensions', array() );
+		if ( is_array( $active ) && ! array_key_exists( 'page-editor', $active ) ) {
+			$active['page-editor'] = array();
+			update_option( 'fw_active_extensions', $active );
+		}
 	}
 
 	/**
@@ -172,7 +203,10 @@ class FW_Extension_Page_Builder extends FW_Extension {
 			$this->get_parent()->load_shortcodes();
 			$page_builder_options = array(
 				'page-builder-box' => array(
-					'title'    => false,
+					// Title shows only when the box is COLLAPSED (CSS hides the .hndle text while
+					// expanded, in editor_integration.css) — clean while editing, identifiable
+					// as "Unyson+ Page Builder" when folded above the other meta boxes.
+					'title'    => __( 'Unyson+ Page Builder', 'fw' ),
 					'type'     => 'box',
 					'priority' => 'high',
 					'options'  => array(

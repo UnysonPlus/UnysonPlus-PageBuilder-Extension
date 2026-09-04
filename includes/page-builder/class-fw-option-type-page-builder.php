@@ -388,6 +388,13 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		static $order = null;
 		if ( null === $order ) {
 			$order = array_flip( array(
+				// Modern layout primitives first — the tiles you reach for to START a layout, ahead of
+				// the column-width tiles. (Bootstrap Section / Bleed / Masonry / Container now live in
+				// the "Classic Layout" tab.)
+				__( 'Section', 'fw' ),
+				__( 'Flexbox', 'fw' ),
+				__( 'Grid', 'fw' ),
+				// Column-width tiles, in a logical fraction sequence.
 				'1/1',
 				'1/2',
 				'1/3',
@@ -405,10 +412,6 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 				'3/5 (60%)',
 				'4/5 (80%)',
 				__( 'Auto Column', 'fw' ),
-				__( 'Container', 'fw' ),
-				__( 'Section', 'fw' ),
-				__( 'Bleed Section', 'fw' ),
-				__( 'Masonry Section', 'fw' ),
 			) );
 		}
 
@@ -435,6 +438,11 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			__('Media Elements', 'fw')         => 2,
 			__('Interactive Elements', 'fw')   => 3,
 			__('Components', 'fw')             => 4,
+			__('WooCommerce Elements', 'fw')   => 5,
+			// The Bootstrap-grid "Classic Layout" tab is the de-emphasised alternative to the modern
+			// Div (Layout Elements), so it always sorts LAST — a high value keeps it after any
+			// future (unmapped, default 100) tab too.
+			__('Classic Layout', 'fw')         => 999,
 		);
 
 		$i1 = isset($order[$tab1]) ? $order[$tab1] : 100;
@@ -626,6 +634,166 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			$items_value = $this->normalize_nested_columns($items_value);
 			return $this->get_shortcode_notation($items_value);
 		}
+	}
+
+	/**
+	 * Serialize a page-builder tree to WordPress BLOCK MARKUP.
+	 *
+	 * The sibling of json_to_shortcodes(): same input, same correction pass, different
+	 * output format. One-way by design — there is no block-markup → builder-JSON reader,
+	 * because a lossless round trip would need a block equivalent for every shortcode and
+	 * would leave two representations to keep in step forever. This is an EXIT path: it
+	 * lets a builder page be handed to the block editor, not shared with it.
+	 *
+	 * Lossless by construction. An element whose shortcode has a matching block becomes
+	 * that block; anything else is wrapped in core's `shortcode` block, which renders
+	 * through the very same shortcode. So an unported element degrades to "still renders,
+	 * just not natively editable" rather than being dropped.
+	 *
+	 * Note what is absent versus the shortcode path: none of the fw_inner_row /
+	 * fw_inner_column / flexbox alias juggling. Those exist only because WordPress'
+	 * shortcode parser is non-recursive for a repeated tag. Block markup delimits with
+	 * comments, so nesting is unambiguous at any depth and the aliases are unnecessary.
+	 *
+	 * @param string|array $json Builder JSON (or an already-decoded tree).
+	 * @return string|false Block markup, or false when the JSON cannot be decoded.
+	 */
+	public function json_to_blocks( $json ) {
+		if ( ! is_array( $json ) && is_null( $json = json_decode( $json, true ) ) ) {
+			return false;
+		}
+
+		$items_value = $this->get_value_from_items( $json );
+
+		// Same grid correction the shortcode path applies, so a bare leaf dragged onto the
+		// canvas is wrapped into column/row/section before it is serialized.
+		if ( apply_filters(
+			'fw:ext:page-builder:json-structure-needs-correction',
+			$this->needs_correction(),
+			$this->get_item_types()
+		) ) {
+			$corrector   = new _Page_Builder_Items_Corrector( $this->get_item_types() );
+			$items_value = $corrector->correct( $items_value );
+		}
+
+		return $this->get_block_notation( $items_value );
+	}
+
+	/**
+	 * Shortcode tag => block name, from the Blocks extension.
+	 *
+	 * Empty when the extension is inactive or absent, which is not an error: every element
+	 * then takes the `core/shortcode` fallback and the export still renders correctly.
+	 *
+	 * @return array<string,string>
+	 */
+	private function get_shortcode_block_map() {
+		$ext = function_exists( 'fw_ext' ) ? fw_ext( 'blocks' ) : null;
+
+		if ( ! $ext || ! method_exists( $ext, 'get_shortcode_block_map' ) ) {
+			return array();
+		}
+
+		/** Filters the shortcode => block name map used when exporting a builder tree to blocks. */
+		return (array) apply_filters( 'fw:ext:page-builder:block-export-map', $ext->get_shortcode_block_map() );
+	}
+
+	/**
+	 * Recursively render builder items as block markup.
+	 *
+	 * @param array $items
+	 * @return string
+	 */
+	private function get_block_notation( $items ) {
+		$registered_items = $this->get_item_types();
+		$map              = $this->get_shortcode_block_map();
+		$out              = '';
+
+		foreach ( (array) $items as $item ) {
+			if ( ! is_array( $item ) || empty( $item['type'] ) ) {
+				continue;
+			}
+			$item_type = $item['type'];
+			if ( ! isset( $registered_items[ $item_type ] ) ) {
+				continue;
+			}
+
+			// get_shortcode_data() expects the attributes WITHOUT the structural keys, but
+			// the untouched item is still needed for the shortcode fallback below.
+			$original   = $item;
+			$item_items = ! empty( $item['_items'] ) ? $item['_items'] : null;
+			unset( $item['type'], $item['_items'] );
+
+			$data = $registered_items[ $item_type ]->get_shortcode_data( $item );
+			$tag  = isset( $data['tag'] ) ? $data['tag'] : '';
+			$atts = isset( $data['atts'] ) && is_array( $data['atts'] ) ? $data['atts'] : array();
+
+			if ( $tag !== '' && isset( $map[ $tag ] ) ) {
+				$inner = $item_items ? $this->get_block_notation( $item_items ) : '';
+				$out  .= $this->render_block_notation( $map[ $tag ], $atts, $inner );
+				continue;
+			}
+
+			// No block for this element — emit the WHOLE subtree as shortcode text inside
+			// core's shortcode block, so it keeps rendering exactly as it does today.
+			$out .= $this->render_shortcode_block_notation( array( $original ) );
+		}
+
+		return $out;
+	}
+
+	/**
+	 * One UnysonPlus block. Options ride in the single `upOptions` object attribute the
+	 * blocks declare, which is also what their server-side render reads.
+	 *
+	 * @param string $block_name
+	 * @param array  $atts
+	 * @param string $inner
+	 * @return string
+	 */
+	private function render_block_notation( $block_name, $atts, $inner ) {
+		$payload = wp_json_encode( array( 'upOptions' => (object) $atts ) );
+		if ( false === $payload ) {
+			$payload = '{"upOptions":{}}';
+		}
+
+		if ( $inner === '' ) {
+			return '<!-- wp:' . $block_name . ' ' . $payload . " /-->\n\n";
+		}
+
+		return '<!-- wp:' . $block_name . ' ' . $payload . " -->\n"
+			. $inner
+			. '<!-- /wp:' . $block_name . " -->\n\n";
+	}
+
+	/**
+	 * Fallback: a subtree emitted as shortcode text inside core's `html` block. Reuses the
+	 * shortcode serializer, so the fallback and the page builder produce byte-for-byte the
+	 * same notation.
+	 *
+	 * `core/html` and NOT `core/shortcode`, which looks like the obvious choice and is the
+	 * wrong one. render_block_core_shortcode() is literally `wpautop( $content )`, and it
+	 * runs during do_blocks() — i.e. on the shortcode text BEFORE do_shortcode expands it.
+	 * wpautop then wraps `[row]` in a paragraph, expansion happens inside it, and the page
+	 * ends up with `<p><div class="fw-row">` — invalid nesting, measured 4 times on a single
+	 * exported demo page.
+	 *
+	 * `core/html` stores its content raw and has no server render, so the shortcode text
+	 * reaches the_content untouched and is expanded by the normal filter chain (wpautop +
+	 * shortcode_unautop + do_shortcode) — the same path a classic-editor page full of
+	 * shortcodes already takes today, which is known to work.
+	 *
+	 * @param array $items
+	 * @return string
+	 */
+	private function render_shortcode_block_notation( $items ) {
+		$notation = trim( (string) $this->get_shortcode_notation( $items ) );
+
+		if ( $notation === '' ) {
+			return '';
+		}
+
+		return "<!-- wp:html -->\n" . $notation . "\n<!-- /wp:html -->\n\n";
 	}
 
 	/**

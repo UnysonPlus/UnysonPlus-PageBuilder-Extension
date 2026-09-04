@@ -2,6 +2,20 @@
         die( 'Forbidden' );
 }
 
+// Post types the Page Editor can replace the block editor on (excludes block-only internal
+// types); offered as opt-out checkboxes so a type (e.g. Posts) can keep the block editor.
+$fw_pe_keep_choices = array();
+foreach ( get_post_types( array( 'show_ui' => true ), 'objects' ) as $fw_pe_pt ) {
+	if (
+		in_array( $fw_pe_pt->name, array( 'wp_block', 'wp_template', 'wp_template_part', 'wp_navigation', 'wp_global_styles' ), true )
+		|| ! post_type_supports( $fw_pe_pt->name, 'editor' )
+	) {
+		continue;
+	}
+	$fw_pe_label = ( isset( $fw_pe_pt->labels->name ) && $fw_pe_pt->labels->name ) ? $fw_pe_pt->labels->name : $fw_pe_pt->name;
+	$fw_pe_keep_choices[ $fw_pe_pt->name ] = $fw_pe_label . ' (' . $fw_pe_pt->name . ')';
+}
+
 $options = array(
         'general-tab' => array(
                 'title'   => '',
@@ -31,6 +45,13 @@ $options = array(
                                 'value' => false,
                                 'text'  => __( 'Disable Styling Presets (bare, structure-only page builder)', 'fw' ),
                                 'desc'  => __( 'Designed for developers who want a pure page builder experience and prefer styling elements manually using custom CSS classes. By default shortcodes get a <strong>Styling</strong> tab and the Button / Border / Table <strong>preset pickers</strong>, the <strong>Component Presets</strong> editor appears under the Unyson+ menu, and the generated <code>presets.css</code> (Color / Typography / Spacing / Button / Border / Table utility classes) is enqueued. <br><br><strong>Check this for a bare, structure-only page builder</strong> — for developers who style everything with their own CSS via each element\'s <strong>CSS ID / Class</strong> (Advanced tab). The Styling tab, preset pickers and Component Presets page disappear, and <code>presets.css</code> stops loading. <br><br>Note: this unstyles any content that relied on preset classes, and the <strong>Unyson+ theme depends on these tokens</strong> — so only enable it on a non-Unyson theme with your own CSS. The Animation tab is unaffected (it only loads when used).', 'fw' ),
+                        ),
+                        'page_editor_keep_block' => array(
+                            'label'   => __( 'Keep the block editor for', 'fw' ),
+                            'type'    => 'checkboxes',
+                            'choices' => $fw_pe_keep_choices,
+                            'value'   => array(),
+                            'desc'    => __( 'The Page Editor replaces WordPress&rsquo;s block editor (Gutenberg) with the classic editor on every post type, so the Page Builder works with no Classic Editor plugin. Check any post types here to KEEP the block editor for them instead &mdash; e.g. Posts, if you write blog posts in Gutenberg. (Reusable blocks and FSE templates are never affected.)', 'fw' ),
                         ),
                         /** Filters extra page-builder settings options merged into the settings form. */
                         apply_filters('fw_ext_page_builder_settings_options', array())

@@ -8,6 +8,7 @@ class _Page_Builder_Items_Corrector
 	private $row_wrap;
 	private $section_wrap;
 	private $container_wrap; // optional — only when the `container` item type is registered
+	private $flexbox_wrap;   // optional — the modern Div wrapper for loose top-level content
 
 	private $items;
 
@@ -32,6 +33,42 @@ class _Page_Builder_Items_Corrector
 				'_items' => array()
 			));
 		}
+
+		// The Flexbox (Div) is the MODERN default wrapper for loose top-level content: a run of
+		// loose elements dropped on the canvas becomes ONE Div tagged <section> (contained) instead
+		// of the legacy auto-generated Bootstrap section. Optional/guarded like the container above,
+		// so a build without the flexbox shortcode degrades gracefully to the legacy section.
+		if ( isset( $item_types['flexbox'] ) ) {
+			$this->flexbox_wrap = $item_types['flexbox']->get_value_from_attributes(array(
+				'_items' => array()
+			));
+		}
+	}
+
+	/**
+	 * Wrap loose items into a Flexbox (Div) — the modern default encapsulator. `$atts` overrides
+	 * (e.g. html_tag => 'section', display => 'block', content_width => array(value,unit)) merge
+	 * over the flexbox defaults. Falls back to a legacy auto-section when the flexbox item type
+	 * isn't registered, so the corrector never loses content.
+	 *
+	 * @param array $items
+	 * @param array $atts
+	 * @return array
+	 */
+	public function wrap_into_flexbox( $items, $atts = array() )
+	{
+		if ( ! is_array( $this->flexbox_wrap ) ) {
+			return $this->wrap_into_section( $items, array( 'atts' => array( 'auto_generated' => true ) ) );
+		}
+		$wrapper           = $this->flexbox_wrap;
+		$wrapper['_items'] = $items;
+		if ( is_array( $atts ) && $atts ) {
+			$wrapper['atts'] = array_merge(
+				isset( $wrapper['atts'] ) && is_array( $wrapper['atts'] ) ? $wrapper['atts'] : array(),
+				$atts
+			);
+		}
+		return $wrapper;
 	}
 
 	/**
@@ -89,12 +126,47 @@ class _Page_Builder_Items_Corrector
 		$this->items = $items;
 		$this->correct_sections();
 		$this->correct_root_items();
+		$this->demote_nested_sections( $this->items, 0 );
 
 		/** Filters the page-builder items after structural correction, passing the corrector and the original items. */
 		return apply_filters('fw_ext_page-builder_items_correction_complete', $this->items,
 			$this,
 			$items // @since 1.3.9
 		);
+	}
+
+	/**
+	 * Enforce "sections are root-only": any flexbox (Div) nested BELOW the root that is tagged
+	 * <section> is demoted to <div>. A root-level band may legitimately be a <section>; a nested
+	 * one becomes a plain <div> (full width inside its parent, and the outer Section owns the
+	 * band + the site-width containment). This kills section-in-section nesting and matches the
+	 * section-at-root / div-nested model. Runs on every render/save, so hand-edited or imported
+	 * trees self-correct too.
+	 *
+	 * @param array $items
+	 * @param int   $depth 0 = root
+	 */
+	private function demote_nested_sections( &$items, $depth = 0 ) {
+		if ( ! is_array( $items ) ) {
+			return;
+		}
+		foreach ( $items as &$item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			if ( $depth > 0 && isset( $item['type'] ) && $item['type'] === 'flexbox' ) {
+				if ( ! isset( $item['atts'] ) || ! is_array( $item['atts'] ) ) {
+					$item['atts'] = array();
+				}
+				if ( isset( $item['atts']['html_tag'] ) && $item['atts']['html_tag'] === 'section' ) {
+					$item['atts']['html_tag'] = 'div';
+				}
+			}
+			if ( isset( $item['_items'] ) && is_array( $item['_items'] ) ) {
+				$this->demote_nested_sections( $item['_items'], $depth + 1 );
+			}
+		}
+		unset( $item );
 	}
 
 	private function correct_sections()
@@ -396,39 +468,32 @@ class _Page_Builder_Items_Corrector
 						) {
 							$fixed_items[] = $items[$i];
 						} else {
-							$auto_generated_section[] = $this->wrap_into_row(
-								array(
-									$this->wrap_into_column(
-										array( $items[ $i ] )
-									)
-								)
-							);
-
+							// MODERN default encapsulation: a run of consecutive loose top-level elements becomes
+							// ONE Div (flexbox) tagged <section>, block flow, contained content — replacing the
+							// legacy auto-generated Bootstrap section > row > column. Flush any pending legacy
+							// auto-section first so document order is preserved.
+							if ( ! empty( $auto_generated_section ) ) {
+								$fixed_items[] = $this->wrap_into_section( $auto_generated_section, array(
+									'atts' => array( 'auto_generated' => true ),
+								) );
+								$auto_generated_section = array();
+							}
+							$band = array( $items[ $i ] );
 							while ( isset( $items[ $i + 1 ] ) && $items[ $i + 1 ]['type'] === 'simple' ) {
 								if (
 									($shortcode_instance = $shortcodes_extension->get_shortcode($items[$i + 1]['shortcode']))
 									&&
 									$shortcode_instance->get_config('page_builder/disable_correction')
 								) {
-									$fixed_items[]          = $this->wrap_into_section( $auto_generated_section, array(
-										'atts' => array(
-											'auto_generated' => true
-										)
-									) );
-									$auto_generated_section = array();
-
 									break;
 								}
-
 								++$i;
-								$auto_generated_section[] = $this->wrap_into_row(
-									array(
-										$this->wrap_into_column(
-											array( $items[ $i ] )
-										)
-									)
-								);
+								$band[] = $items[ $i ];
 							}
+							$fixed_items[] = $this->wrap_into_flexbox( $band, array(
+								'html_tag' => 'section', // a section-tag Div contains its content to the theme container by default
+								'display'  => 'block',
+							) );
 						}
 						break;
 

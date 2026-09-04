@@ -161,7 +161,21 @@ abstract class Page_Builder_Section_Like_Item extends Page_Builder_Item {
 						$options[ $option_id ]['value'] = $option_value;
 					}
 				}
-				$attributes['atts'] = fw_get_options_values_from_input( $options, array() );
+				try {
+					$attributes['atts'] = fw_get_options_values_from_input( $options, array() );
+				} catch ( \Throwable $e ) {
+					/**
+					 * Resilience guard against silent content loss on plugin updates
+					 * (mirrors Page_Builder_Simple_Item). If an option's stored VALUE SHAPE
+					 * changed between versions, re-deriving it here can throw. Without this
+					 * catch, one bad option aborts the conversion and the WHOLE section /
+					 * flexbox item loads with EMPTY atts — and if the page is then saved in
+					 * that blank state, every child and setting is silently wiped. Keeping
+					 * the raw saved atts means a shape change mis-renders one field at
+					 * worst, never destroys the item.
+					 */
+					unset( $e );
+				}
 			}
 		}
 

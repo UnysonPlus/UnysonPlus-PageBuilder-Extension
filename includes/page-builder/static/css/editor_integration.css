@@ -17,5 +17,14 @@
 }
 
 .page-builder-hide-button {
-    margin: 5px 0 5px 10px !important;
+    margin: 0 0 4px 0 !important;
+}
+
+/* Page Builder meta box: the "Unyson+ Page Builder" box title shows ONLY when the box is
+   COLLAPSED. While expanded the .hndle text is hidden so the builder reads as the main editor
+   (as before) — the collapse chevron in the header stays clickable, so it always folds/unfolds.
+   Covers both classic (.postbox > .hndle) and WP 5.5+ (.postbox > .postbox-header > .hndle). */
+.postbox:has(.fw-option-type-builder):not(.closed) > .postbox-header .hndle,
+.postbox:has(.fw-option-type-builder):not(.closed) > .hndle {
+    visibility: hidden;
 }
