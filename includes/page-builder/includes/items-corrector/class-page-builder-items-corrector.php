@@ -491,8 +491,11 @@ class _Page_Builder_Items_Corrector
 								$band[] = $items[ $i ];
 							}
 							$fixed_items[] = $this->wrap_into_flexbox( $band, array(
-								'html_tag' => 'section', // a section-tag Div contains its content to the theme container by default
-								'display'  => 'block',
+								'html_tag'       => 'section', // a section-tag Div contains its content to the theme container by default
+								'display'        => 'block',
+								'auto_generated' => true,      // marks THIS as the corrector's own wrapper (not user-authored),
+								                               // so consumers like the Snippets extension can unwrap it on render
+								                               // (parity with the legacy [section auto_generated] wrapper).
 							) );
 						}
 						break;

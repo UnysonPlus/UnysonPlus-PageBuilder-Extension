@@ -389,11 +389,13 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 		if ( null === $order ) {
 			$order = array_flip( array(
 				// Modern layout primitives first — the tiles you reach for to START a layout, ahead of
-				// the column-width tiles. (Bootstrap Section / Bleed / Masonry / Container now live in
-				// the "Classic Layout" tab.)
+				// the column-width tiles. The modernised, self-contained Bleed / Masonry sections live
+				// here too; the Bootstrap-grid Section / Container remain in the "Classic Layout" tab.
 				__( 'Section', 'fw' ),
 				__( 'Flexbox', 'fw' ),
 				__( 'Grid', 'fw' ),
+				__( 'Bleed Section', 'fw' ),
+				__( 'Masonry Section', 'fw' ),
 				// Column-width tiles, in a logical fraction sequence.
 				'1/1',
 				'1/2',

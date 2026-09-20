@@ -11,6 +11,23 @@ function fw_ext_page_builder_is_builder_post($post_id = '') {
 }
 
 /**
+ * Post types the page builder is ALWAYS active for, regardless of the "Activate for"
+ * setting — because another extension force-adds builder support for them and they have
+ * no meaning without the builder (Snippets, and the theme-builder Header/Footer/Body
+ * presets). The settings screen shows these checkboxes pre-checked and disabled so the
+ * UI stops implying they are optional. Extensions that force support declare themselves
+ * through the `fw_ext_page_builder_always_on_post_types` filter.
+ *
+ * @return string[] Post-type slugs.
+ */
+function fw_ext_page_builder_always_on_post_types() {
+        /** Filters the post types the page builder is always active for (declared by the extensions that force builder support). */
+        $types = apply_filters( 'fw_ext_page_builder_always_on_post_types', array() );
+
+        return is_array( $types ) ? array_values( array_unique( array_filter( array_map( 'strval', $types ) ) ) ) : array();
+}
+
+/**
  * Returns all post types that can be integrated with the page builder
  */
 function fw_ext_page_builder_get_supported_post_types() {

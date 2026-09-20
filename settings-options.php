@@ -16,6 +16,17 @@ foreach ( get_post_types( array( 'show_ui' => true ), 'objects' ) as $fw_pe_pt )
 	$fw_pe_keep_choices[ $fw_pe_pt->name ] = $fw_pe_label . ' (' . $fw_pe_pt->name . ')';
 }
 
+// Role choices for the SVG-upload allow-list (every registered role; default administrator only).
+$fw_svg_role_choices = array();
+if ( function_exists( 'wp_roles' ) ) {
+	foreach ( wp_roles()->get_names() as $fw_svg_role_key => $fw_svg_role_name ) {
+		$fw_svg_role_choices[ $fw_svg_role_key ] = function_exists( 'translate_user_role' ) ? translate_user_role( $fw_svg_role_name ) : $fw_svg_role_name;
+	}
+}
+if ( empty( $fw_svg_role_choices ) ) {
+	$fw_svg_role_choices = array( 'administrator' => __( 'Administrator', 'fw' ) );
+}
+
 $options = array(
         'general-tab' => array(
                 'title'   => '',
@@ -25,10 +36,15 @@ $options = array(
                                 'label'   => __( 'Activate for', 'fw' ),
                                 'type'    => 'checkboxes',
                                 'choices' => fw_ext_page_builder_get_supported_post_types(),
-                                /** Filters the default post types the page builder is activated for (default page). */
+                                /** Filters the default post types the page builder is activated for (default page + post). */
                                 'value'   => apply_filters(
                                         'fw_ext_page_builder_settings_options_post_types_default_value',
-                                        array( 'page' => true )
+                                        // Pages open in the builder by default; Blog Posts get the builder
+                                        // BUTTON too but stay on the Classic editor by default (the page
+                                        // builder's builder_active default excludes `post`). Activating a
+                                        // type does not touch its editor — the Page Editor already forces
+                                        // Classic globally — so adding `post` here only surfaces the toggle.
+                                        array( 'page' => true, 'post' => true )
                                 ),
                                 'desc'    => __( 'Select the posts you want the Page Builder extension to be activated for', 'fw' )
                         ),
@@ -52,6 +68,13 @@ $options = array(
                             'choices' => $fw_pe_keep_choices,
                             'value'   => array(),
                             'desc'    => __( 'The Page Editor replaces WordPress&rsquo;s block editor (Gutenberg) with the classic editor on every post type, so the Page Builder works with no Classic Editor plugin. Check any post types here to KEEP the block editor for them instead &mdash; e.g. Posts, if you write blog posts in Gutenberg. (Reusable blocks and FSE templates are never affected.)', 'fw' ),
+                        ),
+                        'svg_upload_roles' => array(
+                                'label'   => __( 'Allow SVG uploads for', 'fw' ),
+                                'type'    => 'checkboxes',
+                                'choices' => $fw_svg_role_choices,
+                                'value'   => array( 'administrator' => true ),
+                                'desc'    => __( 'WordPress blocks <code>.svg</code> uploads by default because an SVG is code &mdash; it can carry <code>&lt;script&gt;</code>, event handlers and external references. UnysonPlus lets you allow them <strong>safely</strong>: every uploaded SVG is <strong>sanitised on the way in</strong> (scripts, event handlers, <code>&lt;foreignObject&gt;</code> and remote references are stripped, and <code>href</code> is limited to same-document links) using the same allow-list sanitiser that powers the icon library. Choose which roles may upload one; <strong>uncheck every role to switch SVG uploads off entirely</strong>. Default: Administrator only. Even then, only upload SVGs you trust.', 'fw' ),
                         ),
                         /** Filters extra page-builder settings options merged into the settings form. */
                         apply_filters('fw_ext_page_builder_settings_options', array())

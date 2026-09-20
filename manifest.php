@@ -10,7 +10,7 @@ $manifest['description'] = __(
     'fw'
 );
 
-$manifest['version']     = '1.7.0';
+$manifest['version']     = '1.7.6';
 $manifest['display']     = true;
 $manifest['standalone']  = true;
 
@@ -46,6 +46,22 @@ $manifest['requirements'] = array(
 /**
  * Changelog
  * -----------------------------------------------------------------------------
+ * 1.7.5 - Blog Posts are now activated for the Page Builder by DEFAULT (alongside Pages), so a
+ *         post carries the "Unyson+ Builder" toggle out of the box. Posts still open in the
+ *         Classic editor by default (1.7.4 excludes `post` from builder-active) — activating a
+ *         type only surfaces the toggle, it doesn't change the editor, because the Page Editor
+ *         already forces Classic globally. Default "Activate for" value is now page + post.
+ *
+ * 1.7.4 - Unyson+ Builder is now the DEFAULT editor for new Pages and custom post types.
+ *         A brand-new page/CPT opens straight into the builder instead of the Classic
+ *         editor; blog posts are unchanged (Classic by default, with the "Unyson+ Builder"
+ *         button still available to switch on). Only the DEFAULT changes — existing content
+ *         keeps its saved editor mode, and both toggle buttons stay, so any post can still be
+ *         switched either way. Implemented by flipping the page-builder option's default
+ *         builder_active value via the fw_post_options filter for every builder-supported type
+ *         except `post`; the per-type rule is filterable through the new
+ *         `fw_page_builder_default_active_for_post_type` hook (e.g. to opt a specific CPT out).
+ *
  * 1.6.98 - Insert Grid picker moves to TABS and gains the full combination set. The Grid tile's
  *          picker now mirrors Insert Section — one tab per column count (Equal / Two / Three / Four /
  *          Five columns) instead of one long scroll — and grows to ~47 layouts: every twelfths split
