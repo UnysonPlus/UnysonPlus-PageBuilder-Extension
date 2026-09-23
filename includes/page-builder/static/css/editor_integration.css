@@ -16,8 +16,16 @@
     display: none;
 }
 
-.page-builder-hide-button {
-    margin: 0 0 4px 0 !important;
+/* The editor-switch button sits directly under the permalink row, which has no
+ * bottom spacing of its own — so `margin-top: 0` put it flush against the
+ * permalink. The value is not arbitrary: in the OTHER state the media-buttons
+ * row (Unyson+ Builder / Add Media / Dynamic Content) clears the same gap with
+ * core's `padding-top: 20px` on #wp-content-editor-tools, putting its buttons
+ * 20px below the permalink. This button lives outside that wrapper, so it
+ * matches that 20px itself and the two editor states line up. */
+.page-builder-hide-button,
+.page-builder-show-button {
+    margin: 20px 0 4px 0 !important;
 }
 
 /* Page Builder meta box: the "Unyson+ Page Builder" box title shows ONLY when the box is
