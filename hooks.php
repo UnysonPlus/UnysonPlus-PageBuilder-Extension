@@ -148,3 +148,108 @@ label.fw-page-builder-always-on input[type="checkbox"]{cursor:default;}
 	<?php
 }
 add_action( 'fw_extension_settings_form_render:page-builder', '_action_fw_page_builder_lock_always_on_settings_ui' );
+
+/**
+ * Silence Chrome's "[Violation] Permissions policy violation: unload is not allowed in this
+ * document" console noise on the post-editor screens.
+ *
+ * WordPress core's bundled TinyMCE (the Classic editor, which UnysonPlus keeps present under the
+ * builder) still registers an `unload` handler. Chrome is deprecating `unload`, and once its
+ * gradual rollout flips the default Permissions Policy for `unload` to disallow, it logs a red
+ * [Violation] for every such handler. It is entirely harmless — the editor and builder work fine —
+ * but a red console violation reads as "this plugin is buggy" to anyone who opens DevTools, which it
+ * is not (the handler is core/TinyMCE, not ours; there is no wp-tinymce.js in this plugin).
+ *
+ * A browser-emitted [Violation] is native console output, not a `console.error`, so JS cannot
+ * suppress it — the only way to remove it is to stop the violation from occurring. On the editor
+ * screens (where back/forward-cache is irrelevant anyway, so an unload handler costs nothing) we
+ * explicitly opt back into `unload` via the Permissions-Policy header, so Chrome no longer flags
+ * TinyMCE's handler and the admin console stays clean. When WordPress eventually updates TinyMCE to
+ * drop `unload`, this header simply becomes a no-op. Filterable off via
+ * `fw_pb_silence_unload_violation`.
+ *
+ * @internal
+ */
+function _action_fw_pb_silence_unload_console_violation() {
+	if ( headers_sent() ) {
+		return;
+	}
+
+	$pagenow = isset( $GLOBALS['pagenow'] ) ? $GLOBALS['pagenow'] : '';
+	if ( ! in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) ) {
+		return; // only the post editor screens load TinyMCE
+	}
+
+	/** Filters whether UnysonPlus opts back into the `unload` Permissions-Policy on editor screens to silence Chrome's deprecation console violation (default true). */
+	if ( ! apply_filters( 'fw_pb_silence_unload_violation', true ) ) {
+		return;
+	}
+
+	// Re-allow `unload` so Chrome stops reporting TinyMCE's (WP core) handler as a policy violation.
+	// If a site/security layer already emits a Permissions-Policy header, append rather than clobber
+	// (only when it does not already speak to `unload`).
+	$existing = '';
+	foreach ( headers_list() as $h ) {
+		if ( stripos( $h, 'Permissions-Policy:' ) === 0 ) {
+			$existing = trim( substr( $h, strlen( 'Permissions-Policy:' ) ) );
+			break;
+		}
+	}
+
+	if ( $existing === '' ) {
+		header( 'Permissions-Policy: unload=*' );
+	} elseif ( stripos( $existing, 'unload' ) === false ) {
+		header( 'Permissions-Policy: ' . $existing . ', unload=*' );
+	}
+	// If an existing header already speaks to `unload`, respect it and do nothing.
+}
+add_action( 'admin_init', '_action_fw_pb_silence_unload_console_violation' );
+
+/**
+ * Second half of the unload-violation silencer (see above): delegate `unload` INTO iframes.
+ *
+ * The Permissions-Policy header only grants the feature to the top document — it does NOT
+ * propagate to same-origin iframes created by script. WordPress core's TinyMCE registers its
+ * `unload` handler inside its own editor iframe, so the header alone leaves that one still
+ * flagged. An iframe only receives a delegated feature when it carries an `allow` attribute, so
+ * this tiny head script (printed before the editor initializes) stamps `allow="unload"` on every
+ * iframe at creation time. Header (top document) + this (iframes) together take the console from a
+ * red violation to clean. Editor screens only; harmless elsewhere; becomes a no-op once WordPress
+ * ships a TinyMCE without the `unload` handler.
+ *
+ * @internal
+ */
+function _action_fw_pb_delegate_unload_to_iframes() {
+	$pagenow = isset( $GLOBALS['pagenow'] ) ? $GLOBALS['pagenow'] : '';
+	if ( ! in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) ) {
+		return;
+	}
+
+	/** Same switch as the header half — off = keep Chrome's `unload` deprecation console violation. */
+	if ( ! apply_filters( 'fw_pb_silence_unload_violation', true ) ) {
+		return;
+	}
+	?>
+<script>
+/* UnysonPlus: give every iframe `allow="unload"` at creation so WordPress core's TinyMCE editor
+   iframe stops tripping Chrome's `unload` Permissions-Policy console violation. Pairs with the
+   Permissions-Policy: unload=* response header. Editor screens only. */
+(function(){
+	try {
+		var proto = Document.prototype, orig = proto.createElement;
+		proto.createElement = function(tag){
+			var el = orig.apply(this, arguments);
+			if (el && String(tag).toLowerCase() === 'iframe') {
+				try {
+					var a = el.getAttribute('allow');
+					el.setAttribute('allow', (a && a.indexOf('unload') === -1) ? (a + '; unload') : (a || 'unload'));
+				} catch (e) {}
+			}
+			return el;
+		};
+	} catch (e) {}
+})();
+</script>
+	<?php
+}
+add_action( 'admin_head', '_action_fw_pb_delegate_unload_to_iframes', 0 );

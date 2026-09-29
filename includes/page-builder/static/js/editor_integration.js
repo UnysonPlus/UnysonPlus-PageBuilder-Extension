@@ -69,7 +69,24 @@
 			// set the hidden to store that the builder is active
 			this.elements.$builderActiveHidden.val( 'true' );
 
+			// Keep the first-paint editor hide (editor_integration.css :has([data-builder-active]))
+			// in sync — the Classic editor stays hidden while the builder is shown.
+			this._markBuilderActive( true );
+
 			this.events.trigger( 'show' );
+		},
+		/**
+		 * Toggle the `data-builder-active` marker the first-paint CSS hides the Classic editor by.
+		 * Captured once (the server renders it on the builder option); restored on show, removed on
+		 * hide so switching to the Classic editor releases it.
+		 */
+		_markBuilderActive: function ( active ) {
+			if ( ! this._$builderActiveMarker || ! this._$builderActiveMarker.length ) {
+				var $m = $( '[data-builder-active]' ).first();
+				this._$builderActiveMarker = ( $m.length ? $m : this.elements.$option );
+			}
+			if ( active ) { this._$builderActiveMarker.attr( 'data-builder-active', '~' ); }
+			else { this._$builderActiveMarker.removeAttr( 'data-builder-active' ); }
 		},
 		hideBuilder: function () {
 
@@ -88,6 +105,8 @@
 			this.elements.$useWpEditorBtn.hide();
 			this.elements.$builderBox.hide();
 			this.elements.$wpPostDivRich.removeClass( 'fw-disable-editor' );
+			// Release the first-paint editor hide so the Classic editor becomes visible.
+			this._markBuilderActive( false );
 			this.elements.$wpPostDivRich.trigger( 'resize' );
 			// set the hidden to store that the builder is inactive
 			this.elements.$builderActiveHidden.val( 'false' );

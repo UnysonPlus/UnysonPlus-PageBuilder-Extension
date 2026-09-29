@@ -2,6 +2,19 @@
     margin-bottom: 0;
 }
 
+/*
+ * Hide the Classic editor from the FIRST PAINT while the builder opens active, so the empty
+ * TinyMCE editor doesn't flash in the seconds before the builder's (delayed) init calls
+ * showBuilder() and applies .fw-disable-editor. Keyed on the builder option's server-rendered
+ * `data-builder-active` attribute (present immediately); editor_integration.js's hideBuilder()
+ * removes that attribute when the user switches to the Classic editor, releasing this rule.
+ * :has() is a progressive enhancement — browsers without it just fall back to the old JS-timed
+ * hide (a brief flash), never a broken editor.
+ */
+#poststuff:has([data-builder-active]) #postdivrich {
+    display: none !important;
+}
+
 .block-editor .fw-use-builder {
     margin: 0 15px;
     height: 100%;
