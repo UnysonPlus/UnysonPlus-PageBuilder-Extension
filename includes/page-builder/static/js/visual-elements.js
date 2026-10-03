@@ -235,9 +235,43 @@
 		refreshDim(model);
 	}
 
+	/* ---- "hide completely" (the legacy visibility flag) --------------------
+	 * Distinct from the per-device hide above, and deliberately so:
+	 *
+	 *   Hide on <device>  CSS class on the wrapper -> element stays in the DOM,
+	 *                     hidden at that breakpoint. Needs the wrapper API, so a
+	 *                     theme that overrides the element's view can drop it.
+	 *   Hide completely   the `fw-visibility` att the renderer honours in
+	 *                     storage_load_recursive(): the item is emptied BEFORE any
+	 *                     view runs, so it never reaches the page at all. No view
+	 *                     can break it, and the markup isn't shipped to the browser.
+	 *
+	 * That second property is why this exists: on a site whose theme overrides the
+	 * element, it is the one hide that still works. */
+	var VIS_KEY = (itemData && itemData.visibility_key) || 'fw-visibility';
+
+	function isVisible(model) {
+		var atts = model.get('atts') || {};
+		return !(VIS_KEY in atts) || !!atts[VIS_KEY];
+	}
+
+	function toggleVisibility(model) {
+		var atts = fw.clone(model.get('atts') || {});
+		atts[VIS_KEY] = !isVisible(model);
+		model.set('atts', atts);
+		if (model.view && model.view.modal && typeof model.view.modal.set === 'function') {
+			model.view.modal.set('values', fw.clone(atts), { silent: true });
+		}
+		refreshDim(model);
+	}
+
 	function refreshDim(model) {
 		if (model.view && model.view.$el) {
+			// Dimmed for the device currently previewed, or struck out entirely when
+			// hidden everywhere — the two states have to look different, or there is
+			// no way to tell which hide is in force.
 			model.view.$el.toggleClass('fw-visibility-off', hiddenOnCurrent(model));
+			model.view.$el.toggleClass('fw-visibility-none', !isVisible(model));
 		}
 	}
 
@@ -292,6 +326,10 @@
 		rows.push({ t: l10n('pasteSettings', 'Paste Settings'), off: !readSettingsClipboard(), fn: function() { pasteSettings(model); } });
 		rows.push({ sep: 1 });
 		rows.push({ t: (hidden ? l10n('showOn', 'Show on') : l10n('hideOn', 'Hide on')) + ' ' + dev, fn: function() { toggleCurrent(model); } });
+		rows.push({
+			t: isVisible(model) ? l10n('hideAlways', 'Hide completely') : l10n('showAlways', 'Show element'),
+			fn: function() { toggleVisibility(model); }
+		});
 		if ($save.length) { rows.push({ t: l10n('saveTemplate', 'Save as Template'), fn: function() { $save.trigger('click'); } }); }
 		rows.push({ sep: 1 });
 		if ($del.length) { rows.push({ t: l10n('remove', 'Delete'), danger: 1, fn: function() { $del.trigger('click'); } }); }

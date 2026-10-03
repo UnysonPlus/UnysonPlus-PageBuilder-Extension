@@ -10,7 +10,7 @@ $manifest['description'] = __(
     'fw'
 );
 
-$manifest['version']     = '1.7.15';
+$manifest['version']     = '1.7.16';
 $manifest['display']     = true;
 $manifest['standalone']  = true;
 
@@ -46,6 +46,20 @@ $manifest['requirements'] = array(
 /**
  * Changelog
  * -----------------------------------------------------------------------------
+ * 1.7.16 - Element menu: a second hide, "Hide completely", alongside "Hide on <device>". The two
+ *         differ in kind, not just in degree. "Hide on <device>" puts a class on the wrapper, so
+ *         the element still ships to the browser and is hidden with CSS at that breakpoint --
+ *         which means a theme that overrides the element's view can drop it (see the Theme
+ *         overrides tab). "Hide completely" writes the `fw-visibility` att the renderer has
+ *         always honoured in storage_load_recursive(): the item is emptied BEFORE any view runs,
+ *         so it never reaches the page at all. No view can break it, and the markup is not sent
+ *         to the browser -- so on a site whose theme overrides that element, it is the one hide
+ *         that still works. It lives in the ... menu and the right-click menu (both build from
+ *         the same rows), not as another toolbar icon. The two states are drawn differently in
+ *         the builder -- a soft dim for the previewed breakpoint, a stronger dim plus hatching
+ *         for hidden-everywhere -- because otherwise there is no way to tell which hide is in
+ *         force. The row label flips to "Show element" when hidden, so there is always a way back.
+ *
  * 1.7.5 - Blog Posts are now activated for the Page Builder by DEFAULT (alongside Pages), so a
  *         post carries the "Unyson+ Builder" toggle out of the box. Posts still open in the
  *         Classic editor by default (1.7.4 excludes `post` from builder-active) — activating a

@@ -173,6 +173,12 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 						'pasteSettings' => __( 'Paste Settings', 'fw' ),
 						'hideOn' => __( 'Hide on', 'fw' ),
 						'showOn' => __( 'Show on', 'fw' ),
+						// Removes the element from the page output entirely (the
+						// `fw-visibility` att), as opposed to the per-breakpoint CSS hide
+						// above. Worded so the two read as different strengths of the
+						// same idea rather than as duplicates.
+						'hideAlways' => __( 'Hide completely', 'fw' ),
+						'showAlways' => __( 'Show element', 'fw' ),
 						'saveTemplate' => __( 'Save as Template', 'fw' ),
 						'clipboardEmpty'  => __( 'Nothing to paste — copy an element first.', 'fw' ),
 						'pasteNeedSection' => __( 'Paste a column after another column, or onto a section.', 'fw' ),

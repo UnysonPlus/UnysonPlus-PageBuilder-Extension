@@ -55,8 +55,24 @@
 	color: #484848;
 }
 
+/* Hidden at the breakpoint currently being previewed — a soft dim, because the
+ * element still ships to the page and shows at other sizes. */
 .fw-option-type-page-builder .fw-visibility-off {
 	opacity: 0.6;
+}
+
+/* Hidden completely (the `fw-visibility` att): the item never reaches the page
+ * at all, so it reads as stronger than the per-device dim above — deliberately
+ * distinct, or there is no way to tell the two hides apart in the builder. */
+.fw-option-type-page-builder .fw-visibility-none {
+	opacity: 0.35;
+	background-image: repeating-linear-gradient(
+		45deg,
+		rgba(0, 0, 0, 0.045) 0,
+		rgba(0, 0, 0, 0.045) 6px,
+		transparent 6px,
+		transparent 12px
+	);
 }
 
 /* Auto-dismissing toast (copy / copy-settings / paste feedback). */
