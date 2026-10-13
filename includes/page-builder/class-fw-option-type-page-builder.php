@@ -306,9 +306,10 @@ class FW_Option_Type_Page_Builder extends FW_Option_Type_Builder
 			'_fw_page_builder_device_preview',
 			array(
 				'l10n' => array(
-					'desktop' => __( 'Desktop', 'fw' ),
-					'tablet'  => __( 'Tablet', 'fw' ),
-					'phone'   => __( 'Phone', 'fw' ),
+					'largeDesktop' => __( 'Large Desktop', 'fw' ),
+					'desktop'      => __( 'Desktop', 'fw' ),
+					'tablet'       => __( 'Tablet', 'fw' ),
+					'phone'        => __( 'Phone', 'fw' ),
 				),
 			)
 		);

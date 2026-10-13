@@ -75,6 +75,13 @@ function _filter_fw_page_builder_default_active_for_new( $options, $post_type ) 
 		return $options;
 	}
 
+	// The default is for NEW content only. A post that already has text but no builder layout of
+	// its own (created by code, an import, or before the type gained builder support) must keep the
+	// classic editor: opening it in an empty builder and saving would replace that text with nothing.
+	if ( _fw_page_builder_post_has_classic_content() ) {
+		return $options;
+	}
+
 	if ( isset( $options['page-builder-box']['options']['page-builder'] ) ) {
 		$value = ( isset( $options['page-builder-box']['options']['page-builder']['value'] )
 			&& is_array( $options['page-builder-box']['options']['page-builder']['value'] ) )
@@ -87,6 +94,41 @@ function _filter_fw_page_builder_default_active_for_new( $options, $post_type ) 
 	return $options;
 }
 add_filter( 'fw_post_options', '_filter_fw_page_builder_default_active_for_new', 20, 2 );
+
+/**
+ * Whether the post being edited or shown has its own post content but no saved builder layout.
+ *
+ * @return bool
+ */
+function _fw_page_builder_post_has_classic_content() {
+	$post_id = 0;
+
+	if ( is_admin() ) {
+		if ( isset( $_GET['post'] ) ) {
+			$post_id = (int) $_GET['post'];
+		} elseif ( isset( $_POST['post_ID'] ) ) {
+			$post_id = (int) $_POST['post_ID'];
+		}
+	}
+
+	if ( ! $post_id && isset( $GLOBALS['post'] ) && $GLOBALS['post'] instanceof WP_Post ) {
+		$post_id = (int) $GLOBALS['post']->ID;
+	}
+
+	if ( ! $post_id ) {
+		return false;
+	}
+
+	$post = get_post( $post_id );
+
+	if ( ! $post || '' === trim( (string) $post->post_content ) ) {
+		return false;
+	}
+
+	$layout = get_post_meta( $post_id, 'fw:opt:ext:pb:page-builder:json', true );
+
+	return '' === trim( (string) $layout ) || '[]' === trim( (string) $layout );
+}
 
 /**
  * On the Page Builder Settings screen, show the ALWAYS-ON post types (Snippets,

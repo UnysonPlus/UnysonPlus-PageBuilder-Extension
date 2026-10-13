@@ -1,8 +1,8 @@
 /**
- * Device preview toggle (Desktop / Tablet / Phone) for the page builder.
+ * Device preview toggle (Large Desktop / Desktop / Tablet / Phone) for the page builder.
  *
- * Adds three toggle buttons to the builder toolbar. The active device drives an
- * `fw-device-{lg|md|sm}` class on the builder root (`.fw-option-type-builder`) and
+ * Adds four toggle buttons to the builder toolbar. The active device drives an
+ * `fw-device-{xl|lg|md|sm}` class on the builder root (`.fw-option-type-builder`) and
  * a `window.fwPbDevice` global, then fires `fw:builder:device-preview` and a
  * synthetic window `resize`. Each responsive subsystem keys off those:
  *   - device-preview.css constrains the canvas to a device-width frame
@@ -16,7 +16,7 @@
 (function ($, fwe, _, localized) {
 	'use strict';
 
-	var DEVICES = ['lg', 'md', 'sm'];
+	var DEVICES = ['xl', 'lg', 'md', 'sm'];
 	var STORAGE_KEY = 'fw-pb-device';
 
 	function getSaved() {
@@ -54,8 +54,11 @@
 
 		var $container = $(
 			'<div class="fw-device-preview fw-pull-right">' +
-				'<a href="#" class="fw-device-btn" data-device="lg" onclick="return false;" title="' + (l10n.desktop || 'Desktop') + '">' +
+				'<a href="#" class="fw-device-btn" data-device="xl" onclick="return false;" title="' + (l10n.largeDesktop || 'Large Desktop') + '">' +
 					'<span class="dashicons dashicons-desktop"></span>' +
+				'</a>' +
+				'<a href="#" class="fw-device-btn" data-device="lg" onclick="return false;" title="' + (l10n.desktop || 'Desktop') + '">' +
+					'<span class="dashicons dashicons-laptop"></span>' +
 				'</a>' +
 				'<a href="#" class="fw-device-btn" data-device="md" onclick="return false;" title="' + (l10n.tablet || 'Tablet') + '">' +
 					'<span class="dashicons dashicons-tablet"></span>' +
@@ -72,7 +75,7 @@
 			}
 			window.fwPbDevice = device;
 			$builder
-				.removeClass('fw-device-lg fw-device-md fw-device-sm')
+				.removeClass('fw-device-xl fw-device-lg fw-device-md fw-device-sm')
 				.addClass('fw-device-' + device);
 			$container.find('.fw-device-btn')
 				.removeClass('active')
