@@ -163,11 +163,23 @@ class FW_Extension_Page_Builder extends FW_Extension {
 	 * various functions to process the page builder shortcodes when called
 	 * from the REST API for any type of page
 	 *
+	 * Only the current post's own content is replaced: a custom endpoint that filters some other
+	 * text (or runs with no current post) gets its content back unchanged, not an empty string.
+	 *
 	 * @internal
+	 * @param string $content
 	 * @return string The post content after any page builder shortcodes are processed
 	 */
-	public function _rest_api_the_content_filter_the_posts() {
-		return fw_ext_page_builder_get_post_content(get_post());
+	public function _rest_api_the_content_filter_the_posts( $content = '' ) {
+		$post = get_post();
+
+		if ( ! $post || (string) $content !== (string) $post->post_content ) {
+			return $content;
+		}
+
+		$built = fw_ext_page_builder_get_post_content( $post );
+
+		return null === $built ? $content : $built;
 	}
 
 	/**
