@@ -54,6 +54,32 @@
 .fw-option-type-page-builder .builder-item-type:hover p span {
 	color: #484848;
 }
+/* Palette tiles (Layout Elements etc.): stack the icon and label in flow with a
+   gap so the label never overlaps a tall element icon. The older rules pin the
+   label absolutely to the bottom while the icon sits in flow, which overlaps
+   once the icon is taller than a few px. Only the with-image tiles switch to
+   flex; `.inner.no-image` (text-only tiles) keeps its own centering. */
+.fw-option-type-page-builder .builder-item-type .inner:not(.no-image) {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	padding: 6px 3px;
+}
+.fw-option-type-page-builder .builder-item-type .inner:not(.no-image) p {
+	position: static;
+	left: auto;
+	right: auto;
+	bottom: auto;
+	height: auto;
+	line-height: 1.15;
+	margin: 0;
+}
+.fw-option-type-page-builder .builder-item-type img {
+	max-height: 28px;
+	width: auto;
+}
 
 /* Hidden at the breakpoint currently being previewed — a soft dim, because the
  * element still ships to the page and shows at other sizes. */
