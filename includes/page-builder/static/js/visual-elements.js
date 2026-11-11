@@ -306,6 +306,48 @@
 		if ($i.length) { $i.trigger('click'); }
 	}
 
+	/* ---- Motion Gallery: "Create choreography" ----------------------------
+	 * Chaining is now design-agnostic: put each gallery on Scroll-scrub + Pin and flip the top-level `chain`
+	 * switch — KEEPING each gallery's own design. The runtime (autoGroupChains) then connects the adjacent
+	 * chained ones into one pinned scroll sequence — the author's model of "drop N galleries, they connect",
+	 * each running its own design across its slice. Fully reversible (untick Chain). (It no longer forces the
+	 * retired abstract Scroll-Choreography design.) */
+	function choreoChainOn(m) {
+		var atts = fw.clone(m.get('atts') || {});
+		// Scroll-scrub + pin (chaining needs the pinned stage), keeping the current design.
+		atts.motion = fw.isObject(atts.motion) ? atts.motion : {};
+		atts.motion.mode = 'scroll';
+		atts.motion.scroll = fw.isObject(atts.motion.scroll) ? atts.motion.scroll : {};
+		atts.motion.scroll.pin = 'yes';
+		// Chain with adjacent galleries (top-level switch).
+		atts.chain = 'yes';
+		m.set('atts', atts);
+		if (m.view && m.view.modal && typeof m.view.modal.set === 'function') {
+			m.view.modal.set('values', fw.clone(atts), { silent: true });
+		}
+	}
+
+	function eachGallery(builder, cb) {
+		function walk(coll) {
+			if (!coll || !coll.each) { return; }
+			coll.each(function(m) {
+				if (m.get && m.get('shortcode') === 'gallery_3d') { cb(m); }
+				var items = m.get && m.get('_items');
+				if (items && items.each) { walk(items); }
+			});
+		}
+		if (builder && builder.rootItems) { walk(builder.rootItems); }
+	}
+
+	function createChoreography(model, builder) {
+		var n = 0;
+		eachGallery(builder, function(m) { choreoChainOn(m); n++; });
+		if (!n) { choreoChainOn(model); n = 1; }
+		toast((n > 1
+			? l10n('choreoChained', 'Chained %d galleries into one scroll choreography')
+			: l10n('choreoOne', 'Choreography on — drop another gallery beside it to chain them')).replace('%d', n));
+	}
+
 	function openMenu(model, builder, x, y) {
 		closeMenu();
 
@@ -319,6 +361,11 @@
 		var rows = [];
 		if (hasOptions) { rows.push({ t: l10n('edit', 'Edit'), fn: function() { trigger(model, '.edit-options'); } }); }
 		if ($clone.length) { rows.push({ t: l10n('duplicate', 'Duplicate'), fn: function() { $clone.trigger('click'); } }); }
+		// Motion Gallery: one-click "Create choreography" — switch every gallery to the Scroll-Choreography
+		// design with Chain on, so adjacent galleries connect into one scroll sequence (the runtime groups them).
+		if (model.get && model.get('shortcode') === 'gallery_3d') {
+			rows.push({ t: l10n('createChoreography', 'Create choreography'), fn: function() { createChoreography(model, builder); } });
+		}
 		rows.push({ sep: 1 });
 		rows.push({ t: l10n('copy', 'Copy'), fn: function() { copyModel(model); } });
 		rows.push({ t: l10n('paste', 'Paste'), off: !readClipboard(), fn: function() { pasteRelativeTo(model, builder); } });
