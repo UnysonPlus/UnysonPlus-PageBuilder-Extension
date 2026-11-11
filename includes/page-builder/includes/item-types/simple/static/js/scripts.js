@@ -281,6 +281,14 @@
 
 					if (!this.get('shortcode')) {
 						this.set('shortcode', shortcode);
+						// A NEW element just dropped in from the palette (an existing one already carries its
+						// shortcode): start it with the shortcode's `new_atts` (config.php page_builder) — e.g. a
+						// Motion Gallery starts with an Entrance Animation added. Only new elements: saved ones
+						// keep exactly their values, and these are ordinary values the user can change or remove.
+						if (shortcodeData.new_atts && typeof shortcodeData.new_atts === 'object'
+							&& (!this.get('atts') || jQuery.isEmptyObject(this.get('atts')))) {
+							this.set('atts', jQuery.extend(true, {}, shortcodeData.new_atts));
+						}
 					}
 
 					var templateData = {
