@@ -610,7 +610,7 @@ class FW_Extension_Page_Builder extends FW_Extension {
 	public function _filter_display_post_states( $post_states, $post ) {
 
 		if ( $this->is_builder_post( $post->ID ) ) {
-			$post_states['unyson'] = 'Unyson';
+			$post_states['unyson'] = __( 'Unyson+', 'fw' ); // built with the page builder
 		}
 
 		return $post_states;
